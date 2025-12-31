@@ -1,0 +1,113 @@
+/* recording.css */
+.visualizer-bar {
+    width: 6px;
+    background: #007bff;
+    border-radius: 3px;
+    transition: height 0.1s ease;
+    height: 5px;
+}
+
+.visualizer-bar.active {
+    background: #dc3545;
+    transition: all 0.2s ease;
+}
+
+/* Khi đang recording, tắt transition để animation frame hoạt động mượt */
+.recording-section.recording .visualizer-bar {
+    transition: none;
+}
+
+/* Recording controls styling */
+.recording-controls {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 20px 0;
+    flex-wrap: wrap;
+}
+
+.record-btn {
+    padding: 12px 25px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.record-btn.recording {
+    background: #28a745;
+}
+
+.record-btn:hover {
+    transform: scale(1.05);
+}
+
+.play-record-btn,
+.delete-record-btn {
+    padding: 10px 20px;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.play-record-btn:disabled,
+.delete-record-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.play-record-btn:hover:not(:disabled),
+.delete-record-btn:hover:not(:disabled) {
+    transform: scale(1.05);
+}
+
+.recording-timer {
+    text-align: center;
+    font-size: 1.2em;
+    font-weight: 600;
+    color: #333;
+    margin: 10px 0;
+}
+
+.recording-feedback {
+    text-align: center;
+    padding: 15px;
+    border-radius: 10px;
+    margin: 15px 0;
+    transition: all 0.3s;
+}
+
+.recording-feedback.recording {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+}
+
+.recording-feedback.recorded {
+    background: #d1ecf1;
+    border: 1px solid #bee5eb;
+    color: #0c5460;
+}
+
+.feedback-text {
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.feedback-time {
+    font-size: 0.9em;
+    opacity: 0.8;
+}

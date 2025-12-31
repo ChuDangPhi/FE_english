@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Học Tiếng Anh</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <span class="logo-text">Học Tiếng Anh</span>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#" class="nav-link active">
+                    <i class="fas fa-home"></i>
+                    <span>Trang chủ</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-dumbbell"></i>
+                    <span>Luyện theo câu</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="../Dashboard/Topics/topics.html" class="nav-link">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span>Chủ đề</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="user-section" id="userSection">
+            <div class="user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div>
+                <div style="font-weight: 600; color: #333;">Tài khoản</div>
+            </div>
+            <i class="fas fa-chevron-down" id="chevronIcon"
+                style="margin-left: auto; color: #666; transition: transform 0.3s; font-size: 12px;"></i>
+        </div>
+
+        <!-- User Menu Dropdown -->
+        <div class="user-menu" id="userMenu">
+            <div class="user-menu-item">
+                <i class="fas fa-user-circle"></i>
+                <span>Thông tin cá nhân</span>
+            </div>
+            <div class="user-menu-item logout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Đăng xuất</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <h1>Học Tiếng Anh Với AI</h1>
+            <p>Luyện tập hàng ngày để nâng cao trình độ của bạn</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px;">
+            <!-- Left Column -->
+            <div>
+                <!-- Progress Card -->
+                <div class="progress-card">
+                    <div class="progress-header">
+                        <div class="progress-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="progress-info">
+                            <h3>Tiến độ học tập</h3>
+                            <p style="color: #999; font-size: 13px; margin: 5px 0 0 0;">Tháng này</p>
+                        </div>
+                    </div>
+
+                    <!-- Main Stats -->
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 20px 0;">
+                        <div
+                            style="text-align: center; padding: 12px; background: linear-gradient(135deg, #667eea15, #764ba215); border-radius: 10px;">
+                            <div style="font-size: 24px; font-weight: bold; color: #667eea;" id="completedLessons">0
+                            </div>
+                            <div style="font-size: 11px; color: #666; margin-top: 4px;">Bài học</div>
+                        </div>
+                        <div
+                            style="text-align: center; padding: 12px; background: linear-gradient(135deg, #4caf5015, #2e7d3215); border-radius: 10px;">
+                            <div style="font-size: 24px; font-weight: bold; color: #4caf50;" id="totalWords">0</div>
+                            <div style="font-size: 11px; color: #666; margin-top: 4px;">Từ vựng</div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div style="margin-top: 15px;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 13px; color: #666; font-weight: 600;">Mục tiêu tháng</span>
+                            <span style="font-size: 13px; color: #667eea; font-weight: 700;"
+                                id="progressPercent">0%</span>
+                        </div>
+                        <div
+                            style="width: 100%; height: 10px; background: #e0e0e0; border-radius: 10px; overflow: hidden;">
+                            <div id="progressBar"
+                                style="height: 100%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); width: 0%; transition: width 0.5s ease;">
+                            </div>
+                        </div>
+                        <p style="color: #999; font-size: 12px; margin-top: 8px; text-align: center;"
+                            id="progressMessage">Bắt đầu học để đạt mục tiêu! 🎯</p>
+                    </div>
+                </div>
+
+                <!-- Streak Card -->
+                <div class="streak-card">
+                    <div class="streak-header">
+                        <div class="streak-icon">🔥</div>
+                        <div style="flex: 1;">
+                            <h3 style="color: #333;">Day(s) Streak</h3>
+                            <div class="streak-number" id="streakNumber">0</div>
+                            <p style="color: #666; font-size: 14px; margin-top: 5px;" id="streakMessage">Bắt đầu học để
+                                tạo streak!</p>
+                            <p style="color: #999; font-size: 13px; margin-top: 5px;" id="streakInfo">Học liên tục mỗi
+                                ngày để duy trì 🔥</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Calendar & Forecast -->
+            <div>
+                <!-- Calendar -->
+                <div class="calendar">
+                    <div class="calendar-header">
+                        <h3 style="color: #333; font-size: 15px; margin-bottom: 4px;">📅 Lịch học</h3>
+                        <p style="color: #999; font-size: 12px; margin: 0;" id="calendarMonth">Tháng 12, 2025</p>
+                    </div>
+
+                    <!-- Thống kê -->
+                    <div
+                        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 10px 12px; border-radius: 8px; margin: 20px 0; color: white;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-size: 11px; opacity: 0.9;">Tổng ngày học</div>
+                                <div style="font-size: 22px; font-weight: bold;" id="totalStudyDays">0</div>
+                            </div>
+                            <div style="font-size: 36px;">🎯</div>
+                        </div>
+                    </div>
+
+                    <!-- Days of week -->
+                    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 8px;">
+                        <div style="text-align: center; font-size: 11px; color: #999; font-weight: 600;">CN</div>
+                        <div style="text-align: center; font-size: 11px; color: #999; font-weight: 600;">T2</div>
+                        <div style="text-align: center; font-size: 11px; color: #999; font-weight: 600;">T3</div>
+                        <div style="text-align: center; font-size: 11px; color: #999; font-weight: 600;">T4</div>
+                        <div style="text-align: center; font-size: 11px; color: #999; font-weight: 600;">T5</div>
+                        <div style="text-align: center; font-size: 11px; color: #999; font-weight: 600;">T6</div>
+                        <div style="text-align: center; font-size: 11px; color: #999; font-weight: 600;">T7</div>
+                    </div>
+
+                    <!-- Calendar Grid -->
+                    <div class="calendar-grid" id="calendarGrid">
+                        <!-- Calendar sẽ được tạo động bởi JavaScript -->
+                    </div>
+                    <!-- Legend -->
+                    <div style="margin-top: 20px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                        <div style="font-size: 11px; font-weight: 600; color: #666; margin-bottom: 8px;">Chú thích:
+                        </div>
+                        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                            <div style="display: flex; align-items: center; gap: 6px; font-size: 12px;">
+                                <div style="width: 14px; height: 14px; background: #4caf50; border-radius: 3px;"></div>
+                                <span style="color: #666;">Đã học</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px; font-size: 12px;">
+                                <div style="width: 14px; height: 14px; background: #f0f0f0; border-radius: 3px;"></div>
+                                <span style="color: #666;">Chưa học</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reset Button -->
+                    <div style="margin-top: 20px;">
+                        <button onclick="resetStudyHistory()"
+                            style="padding: 10px 12px; background: #dc3545; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; width: 100%; transition: all 0.3s;"
+                            onmouseover="this.style.background='#c82333'" onmouseout="this.style.background='#dc3545'">
+                            <i class="fas fa-trash-alt"></i> Xóa lịch sử học
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <script src="dashboard.js"></script>
+</body>
+
+</html>

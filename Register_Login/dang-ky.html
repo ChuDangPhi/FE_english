@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký tài khoản</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="style2.css">
+</head>
+
+<body>
+    <div class="card">
+        <div class="header">
+            <h1>Chào mừng bạn!</h1>
+            <p>Tạo tài khoản để học tiếng Anh cùng AI</p>
+        </div>
+        <div class="form">
+            <form id="registerForm">
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" name="fullname" placeholder="Họ và tên" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" name="email" placeholder="Email" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" name="password" id="password" placeholder="Mật khẩu" required>
+                    <i class="fas fa-eye-slash toggle-password" data-target="password"></i>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" name="confirm_password" id="confirm_password" placeholder="Nhập lại mật khẩu"
+                        required>
+                    <i class="fas fa-eye-slash toggle-password" data-target="confirm_password"></i>
+                </div>
+                <button type="submit" class="btn">
+                    <i class="fas fa-user-plus"></i> Đăng ký ngay
+                </button>
+            </form>
+            <div class="links">
+                Đã có tài khoản? <a href="dang-nhap.html">Đăng nhập</a>
+            </div>
+            <a href="../Background/background.html" class="back">
+                <i class="fas fa-arrow-left"></i> Về trang chủ
+            </a>
+        </div>
+    </div>
+
+    <script src="relo.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,91 @@
+/* modal.css */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    animation: fadeIn 0.3s;
+}
+
+.modal-content {
+    background-color: white;
+    margin: 2% auto;
+    padding: 0;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    animation: slideUp 0.3s;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 20px 30px;
+    border-radius: 15px 15px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.5em;
+}
+
+.close-btn {
+    font-size: 2em;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.close-btn:hover {
+    transform: scale(1.1);
+}
+
+/* Scrollbar styling for modal */
+.modal-content {
+    overflow-y: overlay;
+    max-height: 90vh;
+    border-radius: 25px !important;
+    padding-right: 0 !important;
+}
+
+.modal-content::-webkit-scrollbar {
+    width: 14px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 0 25px 25px 0;
+    margin: 15px 0;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 0 10px 10px 0;
+    border: 4px solid transparent;
+    background-clip: padding-box;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #5a6fd8, #6a4190);
+    border: 3px solid transparent;
+}
+
+.matching-game,
+.pronunciation-section {
+    padding: 30px;
+    border-radius: 0 0 25px 25px !important;
+}
+
+.modal-header {
+    border-radius: 25px 25px 0 0 !important;
+    padding: 20px 30px;
+}

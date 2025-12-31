@@ -1,0 +1,36 @@
+/* tabs.css */
+.game-tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 25px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.game-tab {
+    padding: 12px 30px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-weight: 600;
+    color: #666;
+    transition: all 0.3s;
+    font-size: 1em;
+}
+
+.game-tab.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+}
+
+.game-tab:hover {
+    color: #667eea;
+}
+
+.game-content {
+    display: none;
+}
+
+.game-content.active {
+    display: block;
+}

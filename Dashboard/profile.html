@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông tin cá nhân - Học Tiếng Anh</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <span class="logo-text">Học Tiếng Anh</span>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="dashboard.html" class="nav-link">
+                    <i class="fas fa-home"></i>
+                    <span>Trang chủ</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-dumbbell"></i>
+                    <span>Luyện theo câu</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="../Dashboard/Topics/topics.html" class="nav-link">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span>Chủ đề</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="user-section" id="userSection">
+            <div class="user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div>
+                <div style="font-weight: 600; color: #333;">Tài khoản</div>
+            </div>
+            <i class="fas fa-chevron-down" id="chevronIcon"
+                style="margin-left: auto; color: #666; transition: transform 0.3s; font-size: 12px;"></i>
+        </div>
+
+        <!-- User Menu Dropdown -->
+        <div class="user-menu" id="userMenu">
+            <div class="user-menu-item active" style="background: #f8f9fa;">
+                <i class="fas fa-user-circle"></i>
+                <span>Thông tin cá nhân</span>
+            </div>
+            <div class="user-menu-item logout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Đăng xuất</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <h1>Thông tin cá nhân</h1>
+            <p>Quản lý thông tin và cài đặt tài khoản của bạn</p>
+        </div>
+
+        <div class="profile-wrapper">
+            <div class="profile-card">
+                <!-- Left Column -->
+                <div class="profile-left">
+                    <div class="large-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <button class="upload-btn" onclick="document.getElementById('avatarInput').click()">
+                        <i class="fas fa-camera"></i> Đổi ảnh đại diện
+                    </button>
+                    <input type="file" id="avatarInput" style="display: none;" accept="image/*">
+
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="profileStreakDays">0</div>
+                            <div class="stat-label">Ngày Streak</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="profileTotalWords">0</div>
+                            <div class="stat-label">Từ đã học</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="profile-right">
+                    <form>
+                        <div class="form-group">
+                            <label class="form-label" for="fullName">Họ và tên</label>
+                            <input type="text" id="fullName" class="form-input" value=""
+                                placeholder="Nhập họ tên của bạn">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="email">Email</label>
+                            <input type="email" id="email" class="form-input" value="" placeholder="Email" readonly
+                                style="background: #f8f9fa;">
+                        </div>
+
+                        <div class="form-group" style="position: relative;">
+                            <label class="form-label" for="password">Mật khẩu</label>
+                            <input type="password" id="password" class="form-input"
+                                placeholder="Nhập để đổi mật khẩu mới" style="padding-right: 45px;">
+                            <i class="fas fa-eye-slash toggle-password-profile" data-target="password"
+                                style="position: absolute; right: 15px; top: 43px; cursor: pointer; color: #999; font-size: 18px;"></i>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="phone">Số điện thoại</label>
+                            <input type="tel" id="phone" class="form-input" value="" placeholder="Nhập số điện thoại">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="bio">Bio</label>
+                            <textarea id="bio" class="form-input" rows="4" placeholder="Giới thiệu bản thân..."
+                                style="resize: vertical;"></textarea>
+                        </div>
+
+                        <div style="margin-top: 30px;">
+                            <button type="submit" class="btn-primary">Lưu thay đổi</button>
+                            <button type="button" class="part-btn outline"
+                                style="margin-left: 10px; border: none; background: transparent; color: #666;">Hủy</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="dashboard.js"></script>
+    <script src="profile.js"></script>
+</body>
+
+</html>

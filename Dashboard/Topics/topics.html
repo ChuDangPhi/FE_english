@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chủ đề học</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../Topics/topics-css/base.css">
+    <link rel="stylesheet" href="../Topics/topics-css/header.css">
+    <link rel="stylesheet" href="../Topics/topics-css/matching-game.css">
+    <link rel="stylesheet" href="../Topics/topics-css/modal.css">
+    <link rel="stylesheet" href="../Topics/topics-css/pronun-game.css">
+    <link rel="stylesheet" href="../Topics/topics-css/recording.css">
+    <link rel="stylesheet" href="../Topics/topics-css/responsive.css">
+    <link rel="stylesheet" href="../Topics/topics-css/tabs.css">
+    <link rel="stylesheet" href="../Topics/topics-css/topics-grid.css">
+    <link rel="stylesheet" href="../Topics/topics-css/ai-chat.css">
+
+
+</head>
+
+<body>
+    <button class="back-btn" onclick="history.back()">
+        <i class="fas fa-arrow-left"></i> Quay lại
+    </button>
+
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-book"></i> Chủ Đề Học</h1>
+            <p>Chọn chủ đề và bắt đầu luyện nói tiếng Anh ngay hôm nay</p>
+        </div>
+
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Tìm kiếm chủ đề...">
+        </div>
+
+        <div class="category-filter">
+            <button class="filter-btn active" data-category="all">Tất cả</button>
+            <button class="filter-btn" data-category="daily">Hàng ngày</button>
+            <button class="filter-btn" data-category="work">Công việc</button>
+            <button class="filter-btn" data-category="travel">Du lịch</button>
+            <button class="filter-btn" data-category="culture">Văn hóa</button>
+        </div>
+
+        <div class="admin-controls" id="adminControls" style="display: none; text-align: center; margin-bottom: 30px;">
+            <button onclick="openAddTopicModal()"
+                style="padding: 12px 25px; background: #28a745; color: white; border: none; border-radius: 25px; cursor: pointer; font-weight: 600; font-size: 1em; box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3); transition: transform 0.2s;">
+                <i class="fas fa-plus-circle"></i> Thêm chủ đề mới
+            </button>
+        </div>
+
+        <div class="topics-grid" id="topicsGrid">
+            <!-- Topics will be inserted here -->
+        </div>
+    </div>
+
+    <!-- Word Matching & Pronunciation Modal -->
+    <div id="learningModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTopicName">Học từ vựng</h2>
+                <span class="close-btn" onclick="closeLearningModal()">&times;</span>
+            </div>
+
+            <!-- Game Tabs -->
+            <div class="game-tabs">
+                <button class="game-tab active" data-tab="matching" onclick="showGameTab('matching')">
+                    <i class="fas fa-link"></i> Nối từ
+                </button>
+                <button class="game-tab" data-tab="pronunciation" onclick="showGameTab('pronunciation')">
+                    <i class="fas fa-volume-up"></i> Phát âm
+                </button>
+                <button class="game-tab" data-tab="aiChat" onclick="showGameTab('aiChat')">
+                    <i class="fas fa-comments"></i> Hội thoại với AI
+                </button>
+            </div>
+
+            <!-- Matching Game -->
+            <div id="matchingGame" class="game-content active">
+                <div class="game-instruction">
+                    <p>Chọn từ tiếng Việt và nghĩa tiếng Anh tương ứng</p>
+                </div>
+                <div class="matching-container">
+                    <div class="words-column" id="wordsColumn">
+                        <!-- Vietnamese words will be loaded here -->
+                    </div>
+                    <div class="meanings-column" id="meaningsColumn">
+                        <!-- English meanings will be loaded here -->
+                    </div>
+                </div>
+                <div class="connections-display" id="connectionsDisplay">
+                    <p>Các cặp từ đã nối sẽ hiển thị ở đây</p>
+                </div>
+                <div class="game-controls">
+                    <button class="control-btn btn-reset" onclick="resetGame()">
+                        <i class="fas fa-redo"></i> Làm lại
+                    </button>
+                    <button class="control-btn btn-close" onclick="closeLearningModal()">
+                        <i class="fas fa-times"></i> Đóng
+                    </button>
+                </div>
+                <div id="resultMessage"></div>
+            </div>
+
+            <!-- Pronunciation Game -->
+            <div id="pronunciationGame" class="game-content">
+                <div class="pronunciation-section">
+                    <h3 class="pronunciation-title">Luyện phát âm tiếng Anh</h3>
+
+                    <div class="word-card">
+                        <div class="word-english" id="currentEnglish">Hello</div>
+                        <div class="word-vietnamese" id="currentVietnamese">Xin chào</div>
+                        <div class="word-meaning" id="currentMeaning">Xin chào, rất vui được gặp bạn</div>
+
+                        <div class="pronunciation-controls">
+                            <button class="pronounce-btn" id="englishBtn" onclick="speakEnglish()">
+                                <i class="fas fa-volume-up"></i> Phát âm
+                            </button>
+                            <button class="control-btn" onclick="prevWord()">
+                                <i class="fas fa-chevron-left"></i> Trước
+                            </button>
+                            <button class="control-btn" onclick="nextWord()">
+                                <i class="fas fa-chevron-right"></i> Sau
+                            </button>
+                        </div>
+
+                        <!-- THÊM PHẦN GHI ÂM VÀO ĐÂY -->
+                        <div class="recording-section">
+                            <h4 class="recording-title">Luyện nói &amp; Ghi âm</h4>
+                            <div class="recording-controls">
+                                <button class="record-btn" id="recordBtn" onclick="startRecording()">
+                                    <i class="fas fa-microphone"></i> Bắt đầu ghi âm
+                                </button>
+                                <button class="play-record-btn" id="playRecordBtn" onclick="playRecording()" disabled>
+                                    <i class="fas fa-play"></i> Nghe lại
+                                </button>
+                                <button class="delete-record-btn" id="deleteRecordBtn" onclick="deleteRecording()"
+                                    disabled>
+                                    <i class="fas fa-trash"></i> Xóa
+                                </button>
+                                <button class="compare-btn" id="compareBtn" onclick="comparePronunciation()" disabled
+                                    style="background: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 25px; cursor: pointer; font-weight: 600;">
+                                    <i class="fas fa-check-circle"></i> So sánh phát âm
+                                </button>
+                            </div>
+                            <div class="recording-timer" id="recordingTimer">00:00</div>
+                            <div class="recording-visualizer" id="visualizer">
+                                <div class="visualizer-bar"></div>
+                                <div class="visualizer-bar"></div>
+                                <div class="visualizer-bar"></div>
+                                <div class="visualizer-bar"></div>
+                                <div class="visualizer-bar"></div>
+                                <div class="visualizer-bar"></div>
+                                <div class="visualizer-bar"></div>
+                                <div class="visualizer-bar"></div>
+                            </div>
+                            <div class="recording-feedback" id="recordingFeedback">
+                                <p>Ghi âm để so sánh với phát âm chuẩn</p>
+                            </div>
+                        </div>
+                        <!-- KẾT THÚC PHẦN GHI ÂM -->
+                    </div>
+
+                    <div class="words-list" id="wordsList">
+                        <!-- Words list will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Chat Game -->
+            <div id="aiChatGame" class="game-content">
+                <div id="aiChatContainer">
+                    <!-- AI Chat content will be loaded dynamically -->
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Edit Topic Modal -->
+    <div id="editTopicModal" class="modal"
+        style="z-index: 10000 !important; position: fixed !important; top: 0; left: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-content"
+            style="max-width: 500px; margin: 5% auto; background-color: #fefefe; padding: 0; border: 1px solid #888; width: 80%;">
+            <div class="modal-header">
+                <h2 id="editModalTitle">Chỉnh sửa chủ đề</h2>
+                <span class="close-btn" onclick="closeEditTopicModal()">&times;</span>
+            </div>
+            <div style="padding: 20px;">
+                <form id="editTopicForm">
+                    <input type="hidden" id="editTopicId">
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">Tên chủ đề</label>
+                        <input type="text" id="editTopicTitle" required
+                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">Mô tả</label>
+                        <textarea id="editTopicDescription" rows="3" required
+                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;"></textarea>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">Độ khó</label>
+                        <select id="editTopicLevel"
+                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                            <option value="beginner">Cơ bản</option>
+                            <option value="intermediate">Trung bình</option>
+                            <option value="advanced">Nâng cao</option>
+                        </select>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">Danh mục</label>
+                        <select id="editTopicCategory"
+                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                            <option value="daily_life">Hàng ngày</option>
+                            <option value="business">Công việc</option>
+                            <option value="travel">Du lịch</option>
+                            <option value="culture">Văn hóa</option>
+                            <option value="other">Khác</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" onclick="closeEditTopicModal()"
+                            style="padding: 10px 20px; border: none; background: #eee; border-radius: 5px; cursor: pointer;">Hủy</button>
+                        <button type="submit"
+                            style="padding: 10px 20px; border: none; background: #667eea; color: white; border-radius: 5px; cursor: pointer;">Lưu
+                            thay đổi</button>
+                    </div>
+                </form>
+
+                <!-- Vocabulary Management Section -->
+                <div style="border-top: 1px solid #ddd; padding-top: 20px; margin-top: 20px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3 style="margin: 0; font-size: 1.1em;">Danh sách từ vựng</h3>
+                        <button type="button" onclick="openAddWordForm()"
+                            style="padding: 5px 10px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.9em;">
+                            <i class="fas fa-plus"></i> Thêm từ
+                        </button>
+                    </div>
+
+                    <!-- List -->
+                    <div id="editTopicVocabList"
+                        style="max-height: 200px; overflow-y: auto; border: 1px solid #eee; border-radius: 5px; margin-bottom: 15px; background: #f9f9f9;">
+                        <!-- Items will be injected here -->
+                        <div style="padding: 10px; text-align: center; color: #999;">Đang tải...</div>
+                    </div>
+
+                    <!-- Add Word Form (Hidden by default) -->
+                    <div id="addWordForm"
+                        style="display: none; background: #fff; padding: 15px; border: 1px solid #ddd; border-radius: 8px;">
+                        <h4 style="margin-top: 0; margin-bottom: 10px;">Thêm từ mới</h4>
+                        <input type="text" id="newWord" placeholder="Từ tiếng Anh (VD: Apple)"
+                            style="width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <input type="text" id="newWordMeaning" placeholder="Nghĩa tiếng Việt (VD: Quả táo)"
+                            style="width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <input type="text" id="newWordPhonetic" placeholder="Phiên âm (VD: /ˈæp.l/)"
+                            style="width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                            <button onclick="closeAddWordForm()"
+                                style="padding: 6px 12px; background: #ccc; border: none; border-radius: 4px; cursor: pointer;">Hủy</button>
+                            <button onclick="handleAddNewWord()"
+                                style="padding: 6px 12px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer;">Thêm
+                                & Lưu</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEPARATE ADD TOPIC MODAL -->
+    <div id="addTopicModal" class="modal"
+        style="z-index: 10001 !important; position: fixed !important; top: 0; left: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); display: none;">
+        <div class="modal-content"
+            style="max-width: 500px; margin: 10% auto; background-color: #fff; padding: 0; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+            <div class="modal-header"
+                style="padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="margin: 0; font-size: 1.5em; color: white;">Thêm chủ đề mới</h2>
+                <span onclick="closeAddTopicModal()"
+                    style="font-size: 28px; font-weight: bold; color: #aaa; cursor: pointer;">&times;</span>
+            </div>
+            <div style="padding: 20px;">
+                <form id="addTopicForm">
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">Tên chủ đề</label>
+                        <input type="text" id="addTopicTitle" required
+                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">Mô tả</label>
+                        <textarea id="addTopicDescription" rows="3" required
+                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;"></textarea>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">Độ khó</label>
+                        <select id="addTopicLevel"
+                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                            <option value="beginner">Cơ bản</option>
+                            <option value="intermediate">Trung bình</option>
+                            <option value="advanced">Nâng cao</option>
+                        </select>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">Danh mục</label>
+                        <select id="addTopicCategory"
+                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                            <option value="daily_life">Hàng ngày</option>
+                            <option value="business">Công việc</option>
+                            <option value="travel">Du lịch</option>
+                            <option value="culture">Văn hóa</option>
+                            <option value="other">Khác</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" onclick="closeAddTopicModal()"
+                            style="padding: 10px 20px; border: none; background: #eee; border-radius: 5px; cursor: pointer;">Hủy</button>
+                        <button type="submit"
+                            style="padding: 10px 20px; border: none; background: #28a745; color: white; border-radius: 5px; cursor: pointer;">
+                            <i class="fas fa-plus"></i> Tạo chủ đề
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="topics.js"></script>
+    <script src="topics-js/matching-game.js"></script>
+    <script src="topics-js/pronun-game.js"></script>
+    <script src="topics-js/recording.js"></script>
+    <script src="topics-js/config.js"></script>
+    <script src="topics-js/ai-chat.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập tài khoản</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="style3.css">
+</head>
+
+<body>
+    <div class="card">
+        <div class="header">
+            <h1>Xin chào bạn!</h1>
+            <p>Đăng nhập để tiếp tục hành trình chinh phục tiếng Anh</p>
+        </div>
+        <div class="form">
+            <form id="loginForm">
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" name="email" placeholder="Email" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" name="password" id="password" placeholder="Mật khẩu" required>
+                    <i class="fas fa-eye-slash toggle-password" data-target="password"></i>
+                </div>
+                <div class="forgot">
+                    <a href="#">Quên mật khẩu?</a>
+                </div>
+                <button type="submit" class="btn">
+                    <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                </button>
+            </form>
+            <div class="links">
+                Chưa có tài khoản? <a href="dang-ky.html">Đăng ký miễn phí</a>
+            </div>
+            <a href="../Background/background.html" class="back">
+                <i class="fas fa-arrow-left"></i> Về trang chủ
+            </a>
+        </div>
+    </div>
+
+    <script src="relo.js"></script>
+</body>
+
+</html>

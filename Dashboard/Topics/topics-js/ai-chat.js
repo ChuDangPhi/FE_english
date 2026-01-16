@@ -147,8 +147,12 @@ Respond in English only.`;
         removeTypingIndicator();
 
         if (response) {
-            addMessage('ai', response);
-            showSuggestions(response);
+            // response có thể là object {reply, audio_url} hoặc string
+            const replyText = typeof response === 'object' ? response.reply : response;
+            const audioUrl = typeof response === 'object' ? response.audio_url : null;
+            
+            addMessage('ai', replyText, audioUrl);
+            showSuggestions(replyText);
         } else {
             addMessage('ai', `Hello! Let's practice English together. Today we're learning about "${topicTitle}". How are you doing today?`);
             showDefaultSuggestions();
@@ -191,12 +195,14 @@ async function callOhMyGPTAPI(messages) {
             // Kiểm tra nếu có lỗi trong response
             if (data.error) {
                 console.warn('[AI Chat] Backend returned error:', data.error);
-                // Vẫn trả về reply nếu có
-                if (data.reply) {
-                    return data.reply;
-                }
-            } else {
-                return data.reply || data.message;
+            }
+            
+            // Trả về object với cả reply và audio_url
+            if (data.reply) {
+                return {
+                    reply: data.reply,
+                    audio_url: data.audio_url || null
+                };
             }
         } else {
             console.warn('[AI Chat] Backend proxy failed with status:', backendResponse.status);
@@ -355,8 +361,12 @@ Respond in English only.`;
         if (sendBtn) sendBtn.disabled = false;
 
         if (response) {
-            addMessage('ai', response);
-            showSuggestions(response);
+            // response có thể là object {reply, audio_url} hoặc string
+            const replyText = typeof response === 'object' ? response.reply : response;
+            const audioUrl = typeof response === 'object' ? response.audio_url : null;
+            
+            addMessage('ai', replyText, audioUrl);
+            showSuggestions(replyText);
         } else {
             addMessage('ai', "That's great! Keep practicing. What else would you like to talk about?");
             showDefaultSuggestions();
@@ -375,12 +385,12 @@ Respond in English only.`;
 }
 
 // ========== ADD MESSAGE TO CHAT ==========
-function addMessage(type, content) {
+function addMessage(type, content, audioUrl = null) {
     const messagesContainer = document.getElementById('chatMessages');
     if (!messagesContainer) return;
 
     // Save to state
-    aiChatState.messages.push({ type, content, timestamp: new Date() });
+    aiChatState.messages.push({ type, content, audioUrl, timestamp: new Date() });
 
     // Create message element
     const messageDiv = document.createElement('div');
@@ -389,16 +399,57 @@ function addMessage(type, content) {
     const avatar = type === 'ai' ? '🤖' : '👤';
     const time = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 
+    // Thêm nút play audio cho tin nhắn AI
+    const audioButton = (type === 'ai' && audioUrl) 
+        ? `<button class="play-audio-btn" onclick="playMessageAudio('${audioUrl}')" title="Nghe">
+               <i class="fas fa-volume-up"></i>
+           </button>` 
+        : '';
+
     messageDiv.innerHTML = `
         <div class="message-avatar">${avatar}</div>
         <div class="message-content">
             ${content}
+            ${audioButton}
             <span class="message-time">${time}</span>
         </div>
     `;
 
     messagesContainer.appendChild(messageDiv);
     scrollToBottom();
+    
+    // Tự động play audio cho tin nhắn AI
+    if (type === 'ai' && audioUrl) {
+        playMessageAudio(audioUrl);
+    }
+}
+
+// ========== PLAY MESSAGE AUDIO ==========
+function playMessageAudio(audioUrl) {
+    if (!audioUrl) return;
+    
+    console.log('[AI Chat] Playing audio:', audioUrl);
+    
+    // Build full URL if relative
+    let fullUrl = audioUrl;
+    if (audioUrl.startsWith('/')) {
+        // Relative URL - add backend base
+        const backendBase = API_BASE_URL.replace('/api/v1', '');
+        fullUrl = backendBase + audioUrl;
+    }
+    
+    console.log('[AI Chat] Full audio URL:', fullUrl);
+    
+    const audio = new Audio(fullUrl);
+    audio.onloadstart = () => console.log('[AI Chat] Audio loading...');
+    audio.oncanplay = () => console.log('[AI Chat] Audio can play');
+    audio.onplay = () => console.log('[AI Chat] Audio playing');
+    audio.onended = () => console.log('[AI Chat] Audio ended');
+    audio.onerror = (e) => console.error('[AI Chat] Audio error:', e);
+    
+    audio.play().catch(err => {
+        console.error('[AI Chat] Failed to play audio:', err);
+    });
 }
 
 // ========== TYPING INDICATOR ==========

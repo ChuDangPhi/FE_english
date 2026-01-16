@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác thực Email</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="style3.css">
+    <style>
+        .status-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+        .status-icon.success { color: #4ecdc4; }
+        .status-icon.error { color: #ff6b6b; }
+        .status-icon.loading { color: #ffd93d; animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        
+        .message {
+            color: #fff;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .message.error { color: #ff6b6b; }
+        
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid rgba(255,255,255,0.5);
+        }
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <div class="header">
+            <div id="statusIcon" class="status-icon loading">
+                <i class="fas fa-spinner"></i>
+            </div>
+            <h1 id="title">Đang xác thực...</h1>
+            <p id="message" class="message">Vui lòng đợi trong giây lát</p>
+        </div>
+        <div class="form">
+            <div id="actions" class="btn-group" style="display: none;">
+                <a href="dang-nhap.html" class="btn">
+                    <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                </a>
+                <a href="../Background/background.html" class="btn btn-secondary">
+                    <i class="fas fa-home"></i> Về trang chủ
+                </a>
+            </div>
+            
+            <div id="resendSection" style="display: none; margin-top: 20px;">
+                <p style="color: rgba(255,255,255,0.8); margin-bottom: 10px;">
+                    Link đã hết hạn? Nhập email để gửi lại:
+                </p>
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="resendEmail" placeholder="Email của bạn">
+                </div>
+                <button class="btn btn-secondary" onclick="resendVerification()">
+                    <i class="fas fa-paper-plane"></i> Gửi lại email xác thực
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000/api/v1';
+        
+        // Lấy token từ URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        
+        async function verifyEmail() {
+            if (!token) {
+                showError('Không tìm thấy token xác thực', 'Link không hợp lệ. Vui lòng kiểm tra lại email.');
+                document.getElementById('resendSection').style.display = 'block';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/verify-email?token=${token}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showSuccess('Xác thực thành công!', 'Email của bạn đã được xác thực. Bạn có thể đăng nhập ngay bây giờ.');
+                } else {
+                    showError('Xác thực thất bại', data.detail || 'Token không hợp lệ hoặc đã hết hạn.');
+                    document.getElementById('resendSection').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Lỗi kết nối', 'Không thể kết nối đến server. Vui lòng thử lại sau.');
+            }
+        }
+        
+        function showSuccess(title, message) {
+            document.getElementById('statusIcon').className = 'status-icon success';
+            document.getElementById('statusIcon').innerHTML = '<i class="fas fa-check-circle"></i>';
+            document.getElementById('title').textContent = title;
+            document.getElementById('message').textContent = message;
+            document.getElementById('message').className = 'message';
+            document.getElementById('actions').style.display = 'flex';
+        }
+        
+        function showError(title, message) {
+            document.getElementById('statusIcon').className = 'status-icon error';
+            document.getElementById('statusIcon').innerHTML = '<i class="fas fa-times-circle"></i>';
+            document.getElementById('title').textContent = title;
+            document.getElementById('message').textContent = message;
+            document.getElementById('message').className = 'message error';
+            document.getElementById('actions').style.display = 'flex';
+        }
+        
+        async function resendVerification() {
+            const email = document.getElementById('resendEmail').value;
+            if (!email) {
+                alert('Vui lòng nhập email');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/resend-verification`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert('Email xác thực đã được gửi! Vui lòng kiểm tra hộp thư.');
+                    document.getElementById('resendSection').style.display = 'none';
+                } else {
+                    alert(data.detail || 'Không thể gửi email. Vui lòng thử lại.');
+                }
+            } catch (error) {
+                alert('Lỗi kết nối. Vui lòng thử lại.');
+            }
+        }
+        
+        // Run verification on page load
+        verifyEmail();
+    </script>
+</body>
+
+</html>

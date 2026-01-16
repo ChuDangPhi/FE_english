@@ -249,6 +249,14 @@ console.log('recording.js đã được tải!');
 
     // ========== PRONUNCIATION COMPARISON ==========
 
+    // API Configuration
+    const API_BASE_URL = 'http://localhost:8000/api/v1';
+    
+    // Lấy token từ localStorage (sau khi đăng nhập)
+    function getAuthToken() {
+        return localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+    }
+
     window.comparePronunciation = async function () {
         console.log('Bắt đầu so sánh phát âm...');
 
@@ -278,15 +286,32 @@ console.log('recording.js đã được tải!');
         }
 
         try {
-            const formData = new FormData();
-            formData.append('audio', currentAudioBlob, 'recording.webm');
-            formData.append('text', currentWord);
+            // Convert audio blob to base64
+            const audioBase64 = await blobToBase64(currentAudioBlob);
+            console.log('Audio converted to base64, length:', audioBase64.length);
 
-            console.log('Đang gửi request tới /pronunciation/check...');
-
-            const response = await fetch('http://localhost:8000/api/v1/pronunciation/check', {
+            const token = getAuthToken();
+            
+            // Gọi API quick-check (không cần lesson_attempt)
+            console.log('Calling API /pronunciation/quick-check');
+            
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+            
+            // Thêm token nếu có (optional auth)
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+            
+            const response = await fetch(`${API_BASE_URL}/pronunciation/quick-check`, {
                 method: 'POST',
-                body: formData
+                headers: headers,
+                body: JSON.stringify({
+                    expected_text: currentWord,
+                    audio_base64: audioBase64,
+                    audio_format: 'webm'
+                })
             });
 
             console.log('Response status:', response.status);
@@ -294,7 +319,7 @@ console.log('recording.js đã được tải!');
             if (response.ok) {
                 const result = await response.json();
                 console.log('API result:', result);
-                displayPronunciationResult(result, currentWord);
+                displayPronunciationResultFromAPI(result);
             } else {
                 const error = await response.json();
                 throw new Error(error.detail || 'Lỗi khi kiểm tra phát âm');
@@ -324,6 +349,116 @@ console.log('recording.js đã được tải!');
             reader.onerror = reject;
             reader.readAsDataURL(blob);
         });
+    }
+
+    // Display result from API (QuickPronunciationCheckResponse)
+    function displayPronunciationResultFromAPI(result) {
+        const feedback = document.getElementById('recordingFeedback');
+        if (!feedback) return;
+
+        // Extract data from API response
+        const scores = result.scores || {};
+        const pronunciationScore = scores.pronunciation_score || 0;
+        const intonationScore = scores.intonation_score || 0;
+        const stressScore = scores.stress_score || 0;
+        const accuracyScore = scores.accuracy_score || 0;
+        
+        const transcription = result.transcription || '';
+        const expectedText = result.expected_text || '';
+        const feedbackData = result.feedback || {};
+        const isPassed = result.is_passed || false;
+        const isMock = result.is_mock || false;
+
+        let scoreColor = '#dc3545';
+        let emoji = '😔';
+        let message = 'Cần luyện tập thêm';
+
+        if (accuracyScore >= 90) {
+            scoreColor = '#28a745';
+            emoji = '🎉';
+            message = 'Xuất sắc! Phát âm rất chuẩn!';
+        } else if (accuracyScore >= 70) {
+            scoreColor = '#28a745';
+            emoji = '👍';
+            message = 'Tốt! Phát âm khá chuẩn';
+        } else if (accuracyScore >= 50) {
+            scoreColor = '#ffc107';
+            emoji = '💪';
+            message = 'Tạm được, cần cải thiện thêm';
+        }
+
+        feedback.innerHTML = `
+            <div style="text-align: center; padding: 15px;">
+                <p style="font-size: 2em; margin-bottom: 5px;">${emoji}</p>
+                <p style="font-size: 1.8em; font-weight: bold; color: ${scoreColor}; margin-bottom: 10px;">
+                    ${Math.round(accuracyScore)}/100
+                </p>
+                <p style="font-weight: 600; margin-bottom: 15px;">${message}</p>
+                
+                <div style="text-align: left; background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin-bottom: 10px;">
+                    <p style="margin: 5px 0; font-size: 0.9em;">
+                        <strong>🎯 Từ cần nói:</strong> ${expectedText}
+                    </p>
+                    <p style="margin: 5px 0; font-size: 0.9em;">
+                        <strong>🗣️ Bạn đã nói:</strong> ${transcription || '(không nhận diện được)'}
+                    </p>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px;">
+                    <div style="background: rgba(255,255,255,0.1); border-radius: 6px; padding: 8px;">
+                        <p style="font-size: 0.75em; color: #aaa; margin: 0;">Phát âm</p>
+                        <p style="font-size: 1.2em; font-weight: bold; margin: 2px 0; color: ${getScoreColor(pronunciationScore)}">${Math.round(pronunciationScore)}</p>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.1); border-radius: 6px; padding: 8px;">
+                        <p style="font-size: 0.75em; color: #aaa; margin: 0;">Ngữ điệu</p>
+                        <p style="font-size: 1.2em; font-weight: bold; margin: 2px 0; color: ${getScoreColor(intonationScore)}">${Math.round(intonationScore)}</p>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.1); border-radius: 6px; padding: 8px;">
+                        <p style="font-size: 0.75em; color: #aaa; margin: 0;">Trọng âm</p>
+                        <p style="font-size: 1.2em; font-weight: bold; margin: 2px 0; color: ${getScoreColor(stressScore)}">${Math.round(stressScore)}</p>
+                    </div>
+                </div>
+                
+                ${feedbackData.overall ? `
+                <div style="margin-top: 12px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 6px; text-align: left;">
+                    <p style="font-size: 0.85em; color: #ddd; margin: 0;">💡 ${feedbackData.overall}</p>
+                </div>
+                ` : ''}
+                
+                ${feedbackData.pronunciation_feedback ? `
+                <div style="margin-top: 8px; padding: 8px; background: rgba(255,255,255,0.03); border-radius: 6px; text-align: left;">
+                    <p style="font-size: 0.8em; color: #bbb; margin: 0;">🎤 ${feedbackData.pronunciation_feedback}</p>
+                </div>
+                ` : ''}
+                
+                ${feedbackData.suggestions && feedbackData.suggestions.length > 0 ? `
+                <div style="margin-top: 8px; padding: 8px; background: rgba(255,255,255,0.03); border-radius: 6px; text-align: left;">
+                    <p style="font-size: 0.8em; color: #bbb; margin: 0 0 5px 0;">📝 Gợi ý:</p>
+                    <ul style="margin: 0; padding-left: 20px; font-size: 0.75em; color: #999;">
+                        ${feedbackData.suggestions.map(s => `<li>${s}</li>`).join('')}
+                    </ul>
+                </div>
+                ` : ''}
+                
+                ${isPassed ? 
+                    '<p style="color: #28a745; margin-top: 10px;">✅ Đạt yêu cầu!</p>' : 
+                    '<p style="color: #ffc107; margin-top: 10px;">⚡ Thử lại để đạt điểm cao hơn!</p>'
+                }
+                
+                ${isMock ? 
+                    '<p style="color: #999; font-size: 0.7em; margin-top: 5px;">⚠️ Demo mode - Cần cấu hình Deepgram API</p>' : 
+                    ''
+                }
+            </div>
+        `;
+        feedback.className = 'recording-feedback recorded';
+    }
+
+    // Helper to get color based on score
+    function getScoreColor(score) {
+        if (score >= 80) return '#28a745';
+        if (score >= 60) return '#ffc107';
+        return '#dc3545';
     }
 
     function displayPronunciationResult(result, word) {

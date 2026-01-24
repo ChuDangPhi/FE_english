@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sổ Tay Từ Vựng - Học Tiếng Anh</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../dashboard.css">
+    <link rel="stylesheet" href="vocabulary.css">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <span class="logo-text">Học Tiếng Anh</span>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="../dashboard.html" class="nav-link">
+                    <i class="fas fa-home"></i>
+                    <span>Trang chủ</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-dumbbell"></i>
+                    <span>Luyện theo câu</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="../Topics/topics.html" class="nav-link">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span>Chủ đề</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="vocabulary.html" class="nav-link active">
+                    <i class="fas fa-book"></i>
+                    <span>Sổ từ vựng</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="user-section" id="userSection">
+            <div class="user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div>
+                <div style="font-weight: 600; color: #333;" id="userName">Tài khoản</div>
+            </div>
+            <i class="fas fa-chevron-down" id="chevronIcon"
+                style="margin-left: auto; color: #666; transition: transform 0.3s; font-size: 12px;"></i>
+        </div>
+
+        <!-- User Menu Dropdown -->
+        <div class="user-menu" id="userMenu">
+            <div class="user-menu-item" onclick="window.location.href='../profile.html'">
+                <i class="fas fa-user-circle"></i>
+                <span>Thông tin cá nhân</span>
+            </div>
+            <div class="user-menu-item logout" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Đăng xuất</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <h1><i class="fas fa-book"></i> Sổ Tay Từ Vựng</h1>
+            <p>Các từ vựng bạn đã lưu trong quá trình học</p>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="vocab-stats">
+            <div class="stat-item">
+                <div class="stat-icon"><i class="fas fa-bookmark"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value" id="totalSaved">0</span>
+                    <span class="stat-label">Từ đã lưu</span>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon learned"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value" id="totalMastered">0</span>
+                    <span class="stat-label">Đã thuộc</span>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon learning"><i class="fas fa-spinner"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value" id="totalLearning">0</span>
+                    <span class="stat-label">Đang học</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search & Filter -->
+        <div class="search-filter-bar">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Tìm kiếm từ vựng...">
+            </div>
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">Tất cả</button>
+                <button class="filter-btn" data-filter="learning">Đang học</button>
+                <button class="filter-btn" data-filter="familiar">Quen thuộc</button>
+                <button class="filter-btn" data-filter="mastered">Đã thuộc</button>
+            </div>
+        </div>
+
+        <!-- Vocabulary List -->
+        <div class="vocabulary-container">
+            <div class="vocab-list" id="vocabList">
+                <!-- Words will be loaded here -->
+            </div>
+
+            <!-- Loading State -->
+            <div class="loading-state" id="loadingState">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Đang tải từ vựng...</p>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <i class="fas fa-book-open"></i>
+                <h3>Chưa có từ vựng nào</h3>
+                <p>Hãy học các chủ đề và lưu từ mới vào sổ tay!</p>
+                <a href="../Topics/topics.html" class="btn-primary">
+                    <i class="fas fa-graduation-cap"></i> Bắt đầu học
+                </a>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" id="pagination" style="display: none;">
+            <button class="page-btn" id="prevPage" disabled>
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <span class="page-info">Trang <span id="currentPage">1</span> / <span id="totalPages">1</span></span>
+            <button class="page-btn" id="nextPage">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Word Detail Modal -->
+    <div class="modal-overlay" id="wordModal">
+        <div class="word-modal">
+            <button class="modal-close" onclick="closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <div class="word-header">
+                <h2 class="word-text" id="modalWord">hello</h2>
+                <span class="word-type" id="modalType">noun</span>
+                <button class="play-audio-btn" id="modalPlayBtn" onclick="playAudio()">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+            </div>
+            
+            <div class="word-phonetic" id="modalPhonetic">/həˈləʊ/</div>
+            
+            <div class="word-section">
+                <h4><i class="fas fa-language"></i> Nghĩa tiếng Việt</h4>
+                <p class="word-definition" id="modalDefinition">Xin chào</p>
+            </div>
+            
+            <div class="word-section">
+                <h4><i class="fas fa-quote-left"></i> Ví dụ</h4>
+                <p class="word-example" id="modalExample">"Hello, how are you today?"</p>
+            </div>
+            
+            <div class="word-mastery">
+                <span class="mastery-label">Mức độ:</span>
+                <div class="mastery-badges">
+                    <button class="mastery-btn" data-level="learning">
+                        <i class="fas fa-spinner"></i> Đang học
+                    </button>
+                    <button class="mastery-btn" data-level="familiar">
+                        <i class="fas fa-star-half-alt"></i> Quen thuộc
+                    </button>
+                    <button class="mastery-btn" data-level="mastered">
+                        <i class="fas fa-check-circle"></i> Đã thuộc
+                    </button>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="btn-remove" onclick="removeWord()">
+                    <i class="fas fa-trash"></i> Xóa khỏi sổ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="vocabulary.js"></script>
+</body>
+
+</html>

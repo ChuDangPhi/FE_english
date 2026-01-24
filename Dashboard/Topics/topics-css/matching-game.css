@@ -33,6 +33,69 @@
     text-align: center;
     font-weight: 500;
     user-select: none;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.word-item .word-text {
+    flex: 1;
+}
+
+/* Save vocabulary button */
+.word-item .save-vocab-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.9);
+    color: #888;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+.word-item .save-vocab-btn:hover {
+    transform: translateY(-50%) scale(1.15);
+    color: #667eea;
+    background: white;
+}
+
+.word-item .save-vocab-btn.saved {
+    color: #f59e0b;
+    background: #fffbeb;
+}
+
+.word-item .save-vocab-btn.saved:hover {
+    color: #d97706;
+}
+
+.word-item.selected .save-vocab-btn {
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+.word-item.selected .save-vocab-btn.saved {
+    background: rgba(255, 255, 255, 0.4);
+    color: #fbbf24;
+}
+
+.word-item.matched .save-vocab-btn {
+    background: rgba(255, 255, 255, 0.8);
+    color: #28a745;
+}
+
+.word-item.matched .save-vocab-btn.saved {
+    color: #f59e0b;
 }
 
 .word-item:hover, .meaning-item:hover {

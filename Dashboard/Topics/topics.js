@@ -28,6 +28,9 @@ let topics = [];
 const API_BASE_URL = 'http://127.0.0.1:8000/api/v1';
 let isAdmin = false;
 
+// Saved vocabulary tracking
+let savedVocabularyIds = new Set();
+
 let filteredTopics = [];
 let currentCategory = 'all';
 let currentTopic = null;
@@ -255,11 +258,15 @@ async function startMatchingGame(topicId) {
                 console.log('[MatchingGame] Lesson Data:', lessonData);
 
                 // Map API vocabulary to Frontend format
-                // API: { id, word, definition } -> Frontend: { word, meaning }
+                // API: { id, word, definition } -> Frontend: { id, word, meaning }
                 if (lessonData.vocabulary_list) {
                     currentTopic.words = lessonData.vocabulary_list.map(v => ({
+                        id: v.id,
                         word: v.word,
-                        meaning: v.definition
+                        meaning: v.definition,
+                        phonetic: v.phonetic || '',
+                        example_sentence: v.example_sentence || '',
+                        audio_url: v.audio_url || ''
                     }));
                 } else {
                     console.warn('[MatchingGame] vocabulary_list is missing or empty');
@@ -326,17 +333,75 @@ function initWordMatchingGame() {
         return;
     }
 
+    console.log('[MatchingGame] Words data:', currentTopic.words);
+
     // Shuffle words
     const shuffledWords = [...currentTopic.words].sort(() => Math.random() - 0.5);
     const shuffledMeanings = [...currentTopic.words].sort(() => Math.random() - 0.5);
 
-    // Create word items
+    // Create word items with save button
     shuffledWords.forEach((wordObj, index) => {
         const wordItem = document.createElement('div');
         wordItem.className = 'word-item';
-        wordItem.textContent = wordObj.word;
+        wordItem.style.cssText = 'position: relative; display: flex; align-items: center; justify-content: center;';
         wordItem.dataset.word = wordObj.word;
-        wordItem.onclick = () => selectWord(wordItem, wordObj.word);
+        const vocabId = wordObj.id || wordObj.vocabulary_id;
+        wordItem.dataset.vocabId = vocabId || '';
+        
+        // Word text span
+        const wordText = document.createElement('span');
+        wordText.className = 'word-text';
+        wordText.style.cssText = 'flex: 1;';
+        wordText.textContent = wordObj.word;
+        wordItem.appendChild(wordText);
+        
+        // Save button - always show with inline styles
+        const saveBtn = document.createElement('button');
+        const isSaved = vocabId && savedVocabularyIds.has(vocabId);
+        saveBtn.className = 'save-vocab-btn' + (isSaved ? ' saved' : '');
+        saveBtn.dataset.vocabId = vocabId || index;
+        saveBtn.dataset.word = wordObj.word;
+        saveBtn.style.cssText = `
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: none;
+            background: ${isSaved ? '#fffbeb' : 'rgba(255,255,255,0.9)'};
+            color: ${isSaved ? '#f59e0b' : '#888'};
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            z-index: 10;
+        `;
+        saveBtn.innerHTML = isSaved 
+            ? '<i class="fas fa-bookmark"></i>' 
+            : '<i class="far fa-bookmark"></i>';
+        saveBtn.title = isSaved ? 'Đã lưu - Bấm để xóa' : 'Lưu vào sổ từ vựng';
+        saveBtn.onclick = (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            console.log('[SaveVocab] Clicked:', wordObj.word, 'ID:', vocabId);
+            if (vocabId) {
+                toggleSaveVocabulary(vocabId);
+            } else {
+                // If no ID, save by word text
+                saveVocabularyByWord(wordObj.word, wordObj.meaning);
+            }
+        };
+        wordItem.appendChild(saveBtn);
+        
+        wordItem.onclick = (e) => {
+            // Don't select if clicking save button
+            if (!e.target.closest('.save-vocab-btn')) {
+                selectWord(wordItem, wordObj.word);
+            }
+        };
         wordsColumn.appendChild(wordItem);
     });
 
@@ -1490,5 +1555,260 @@ async function removeWordFromLesson(vocabId) {
         alert('Lỗi kết nối.');
     }
 }
+
+// ========== VOCABULARY NOTEBOOK FUNCTIONS ==========
+
+// Save vocabulary to notebook
+async function saveVocabularyToNotebook(vocabId) {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+        alert('Vui lòng đăng nhập để lưu từ!');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/vocabulary/save`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                vocabulary_id: vocabId,
+                is_saved: true
+            })
+        });
+
+        if (response.ok) {
+            savedVocabularyIds.add(vocabId);
+            updateSaveButtonUI(vocabId, true);
+            showVocabToast('Đã lưu vào sổ từ vựng!', 'success');
+        } else {
+            throw new Error('Lưu thất bại');
+        }
+    } catch (error) {
+        console.error('Save vocabulary error:', error);
+        showVocabToast('Không thể lưu từ. Vui lòng thử lại.', 'error');
+    }
+}
+
+// Unsave vocabulary from notebook
+async function unsaveVocabularyFromNotebook(vocabId) {
+    const token = localStorage.getItem('access_token');
+    if (!token) return;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/vocabulary/save`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                vocabulary_id: vocabId,
+                is_saved: false
+            })
+        });
+
+        if (response.ok) {
+            savedVocabularyIds.delete(vocabId);
+            updateSaveButtonUI(vocabId, false);
+            showVocabToast('Đã xóa khỏi sổ từ vựng', 'info');
+        }
+    } catch (error) {
+        console.error('Unsave vocabulary error:', error);
+    }
+}
+
+// Toggle save state
+function toggleSaveVocabulary(vocabId) {
+    if (savedVocabularyIds.has(vocabId)) {
+        unsaveVocabularyFromNotebook(vocabId);
+    } else {
+        saveVocabularyToNotebook(vocabId);
+    }
+}
+
+// Save vocabulary by word text (when no ID available)
+async function saveVocabularyByWord(word, meaning) {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+        alert('Vui lòng đăng nhập để lưu từ!');
+        return;
+    }
+
+    try {
+        // First, try to find or create vocabulary by word
+        const response = await fetch(`${API_BASE_URL}/vocabulary/save-by-word`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                word: word,
+                definition: meaning,
+                is_saved: true
+            })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            if (data.id) {
+                savedVocabularyIds.add(data.id);
+            }
+            // Update button by word
+            const btn = document.querySelector(`.save-vocab-btn[data-word="${word}"]`);
+            if (btn) {
+                btn.classList.add('saved');
+                btn.innerHTML = '<i class="fas fa-bookmark"></i>';
+                btn.title = 'Đã lưu - Bấm để xóa';
+                if (data.id) btn.dataset.vocabId = data.id;
+            }
+            showVocabToast('Đã lưu vào sổ từ vựng!', 'success');
+        } else {
+            throw new Error('Lưu thất bại');
+        }
+    } catch (error) {
+        console.error('Save vocabulary by word error:', error);
+        showVocabToast('Không thể lưu từ. Vui lòng thử lại.', 'error');
+    }
+}
+
+// Update save button UI
+function updateSaveButtonUI(vocabId, isSaved) {
+    const btn = document.querySelector(`.save-vocab-btn[data-vocab-id="${vocabId}"]`);
+    if (btn) {
+        if (isSaved) {
+            btn.classList.add('saved');
+            btn.innerHTML = '<i class="fas fa-bookmark"></i>';
+            btn.title = 'Đã lưu - Bấm để xóa';
+        } else {
+            btn.classList.remove('saved');
+            btn.innerHTML = '<i class="far fa-bookmark"></i>';
+            btn.title = 'Lưu vào sổ từ vựng';
+        }
+    }
+}
+
+// Load saved vocabulary IDs
+async function loadSavedVocabularyIds() {
+    const token = localStorage.getItem('access_token');
+    if (!token) return;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/vocabulary/saved?page_size=1000`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            const items = data.items || data.data || data || [];
+            savedVocabularyIds = new Set(items.map(v => v.id || v.vocabulary_id));
+        }
+    } catch (error) {
+        console.error('Load saved vocabulary error:', error);
+    }
+}
+
+// Show toast notification
+function showVocabToast(message, type = 'success') {
+    // Remove existing toast
+    const existingToast = document.querySelector('.vocab-toast');
+    if (existingToast) existingToast.remove();
+
+    const toast = document.createElement('div');
+    toast.className = `vocab-toast vocab-toast-${type}`;
+    toast.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+        <span>${message}</span>
+    `;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.add('fade-out');
+        setTimeout(() => toast.remove(), 300);
+    }, 2500);
+}
+
+// Add toast styles dynamically
+(function addVocabToastStyles() {
+    if (document.getElementById('vocab-toast-styles')) return;
+    
+    const style = document.createElement('style');
+    style.id = 'vocab-toast-styles';
+    style.textContent = `
+        .vocab-toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 14px 24px;
+            background: #4caf50;
+            color: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            z-index: 10000;
+            animation: slideInToast 0.3s ease;
+        }
+        .vocab-toast-error { background: #f44336; }
+        .vocab-toast-info { background: #2196f3; }
+        .vocab-toast.fade-out { animation: slideOutToast 0.3s ease forwards; }
+        
+        @keyframes slideInToast {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutToast {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        .save-vocab-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.9);
+            color: #888;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.2s;
+            position: absolute;
+            top: 8px;
+            right: 8px;
+        }
+        .save-vocab-btn:hover {
+            transform: scale(1.15);
+            color: #667eea;
+        }
+        .save-vocab-btn.saved {
+            color: #f59e0b;
+            background: #fffbeb;
+        }
+        .save-vocab-btn.saved:hover {
+            color: #d97706;
+        }
+        
+        .word-item, .meaning-item {
+            position: relative;
+        }
+    `;
+    document.head.appendChild(style);
+})();
+
+// Initialize saved vocabulary on page load
+document.addEventListener('DOMContentLoaded', () => {
+    loadSavedVocabularyIds();
+});
+
 
 // End of file

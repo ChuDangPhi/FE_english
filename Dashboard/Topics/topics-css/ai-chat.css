@@ -185,6 +185,25 @@
     font-size: 12px;
 }
 
+/* User Audio Button - Different style for user's own recording */
+.user-audio-btn {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    margin-left: 8px;
+}
+
+.user-audio-btn:hover {
+    box-shadow: 0 2px 8px rgba(245, 87, 108, 0.4);
+}
+
+.user-message .play-audio-btn {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.user-message .play-audio-btn:hover {
+    background: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.3);
+}
+
 /* Typing Indicator */
 .typing-indicator {
     display: flex;
@@ -506,4 +525,439 @@
     .suggestion-chip {
         white-space: nowrap;
     }
+}
+
+/* ========== EVALUATE BUTTON STYLES ========== */
+.evaluate-btn {
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: white;
+    border: none;
+    border-radius: 15px;
+    padding: 5px 12px;
+    font-size: 0.75em;
+    cursor: pointer;
+    margin-left: 8px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.evaluate-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(72, 187, 120, 0.4);
+}
+
+/* ========== MESSAGE EVALUATION STYLES ========== */
+.message-evaluation {
+    margin-top: 10px;
+    margin-left: 45px;
+}
+
+.message-eval {
+    background: #f7fafc;
+    border-radius: 12px;
+    padding: 12px 15px;
+    border-left: 4px solid #48bb78;
+    animation: slideIn 0.3s ease;
+}
+
+.message-eval.has-errors {
+    border-left-color: #f6ad55;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.eval-status {
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.eval-status.correct {
+    color: #38a169;
+}
+
+.eval-status.incorrect {
+    color: #dd6b20;
+}
+
+.corrected-text {
+    background: #e6fffa;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin: 8px 0;
+    color: #234e52;
+}
+
+.corrections-list {
+    margin: 10px 0;
+}
+
+.correction-item {
+    background: #fffaf0;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.correction-item .original {
+    color: #c53030;
+    text-decoration: line-through;
+}
+
+.correction-item .arrow {
+    margin: 0 8px;
+    color: #718096;
+}
+
+.correction-item .corrected {
+    color: #38a169;
+    font-weight: 500;
+}
+
+.correction-item .explanation {
+    margin-top: 5px;
+    font-size: 0.85em;
+    color: #4a5568;
+    font-style: italic;
+}
+
+.eval-feedback {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.eval-feedback .relevance {
+    font-size: 0.85em;
+    color: #667eea;
+    font-weight: 500;
+}
+
+.eval-feedback .encouragement {
+    color: #48bb78;
+    font-weight: 500;
+}
+
+.eval-loading {
+    color: #718096;
+    font-style: italic;
+}
+
+.eval-error {
+    color: #c53030;
+    font-size: 0.9em;
+}
+
+/* ========== SUGGESTION POPUP STYLES ========== */
+.suggestion-popup {
+    position: absolute;
+    bottom: 150px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 400px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    animation: popupSlide 0.3s ease;
+}
+
+@keyframes popupSlide {
+    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.suggestion-popup-content {
+    padding: 20px;
+}
+
+.popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.popup-header h4 {
+    margin: 0;
+    color: #2d3748;
+}
+
+.close-popup {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #a0aec0;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.close-popup:hover {
+    color: #4a5568;
+}
+
+.suggestion-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.suggestion-option {
+    background: #edf2f7;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.suggestion-option:hover {
+    background: #667eea;
+    color: white;
+    transform: scale(1.05);
+}
+
+.example-section h5,
+.explanation-section h5 {
+    margin: 0 0 8px 0;
+    color: #4a5568;
+    font-size: 0.9em;
+}
+
+.example-sentence {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.example-sentence:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.explanation-section {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.explanation-section p {
+    margin: 0;
+    color: #4a5568;
+    font-size: 0.9em;
+    line-height: 1.5;
+}
+
+/* ========== CONVERSATION EVALUATION RESULT ========== */
+.evaluation-result {
+    text-align: center;
+    padding: 20px;
+}
+
+.eval-header {
+    margin-bottom: 25px;
+}
+
+.eval-header .eval-icon {
+    font-size: 48px;
+    margin-bottom: 10px;
+}
+
+.eval-header h3 {
+    margin: 0 0 8px 0;
+    color: #2d3748;
+}
+
+.eval-header p {
+    margin: 0;
+    color: #718096;
+}
+
+.eval-scores {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    padding: 25px;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.score-item {
+    margin-bottom: 20px;
+}
+
+.score-label {
+    font-size: 0.9em;
+    opacity: 0.9;
+}
+
+.score-value.overall {
+    font-size: 48px;
+    font-weight: 700;
+}
+
+.score-details {
+    text-align: left;
+}
+
+.score-detail {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-size: 0.9em;
+}
+
+.score-detail span:first-child {
+    width: 70px;
+}
+
+.score-bar {
+    flex: 1;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.score-bar div {
+    height: 100%;
+    background: white;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.score-detail span:last-child {
+    width: 30px;
+    text-align: right;
+}
+
+.eval-section {
+    background: #f7fafc;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.eval-section h4 {
+    margin: 0 0 12px 0;
+    color: #2d3748;
+    font-size: 1em;
+}
+
+.grammar-errors .error-item {
+    background: white;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border-left: 3px solid #f6ad55;
+}
+
+.error-original {
+    color: #c53030;
+    margin-bottom: 4px;
+}
+
+.error-corrected {
+    color: #38a169;
+    margin-bottom: 4px;
+}
+
+.error-explanation {
+    font-size: 0.85em;
+    color: #4a5568;
+    font-style: italic;
+}
+
+.strengths-list,
+.improve-list,
+.tips-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.strengths-list li,
+.improve-list li,
+.tips-list li {
+    padding: 8px 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.strengths-list li:last-child,
+.improve-list li:last-child,
+.tips-list li:last-child {
+    border-bottom: none;
+}
+
+.overall-feedback {
+    margin: 0;
+    color: #4a5568;
+    line-height: 1.6;
+}
+
+.eval-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.eval-actions .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.eval-actions .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+}
+
+.eval-actions .btn-secondary {
+    background: #e2e8f0;
+    color: #4a5568;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.eval-actions .btn-secondary:hover {
+    background: #cbd5e0;
+}
+
+/* ========== SUGGEST BUTTON STYLE ========== */
+.btn-suggest {
+    background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%) !important;
+}
+
+.btn-suggest:hover {
+    box-shadow: 0 3px 12px rgba(237, 137, 54, 0.4);
 }

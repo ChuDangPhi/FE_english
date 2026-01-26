@@ -1,45 +1,43 @@
-// ========== AI CHAT CONFIGURATION ==========
-const AI_CHAT_CONFIG = {
-    API_BASE_URL: 'https://api.groq.com/openai/v1',
-    API_KEY: null, // Will be loaded from config.js
-    MODEL: 'llama-3.3-70b-versatile',
-    MAX_TOKENS: 2000,
-    TEMPERATURE: 0.5
-};
+/**
+ * AI Chat Module - Hội thoại với AI
+ * Tính năng: Chat, Gợi ý câu, Đánh giá ngữ pháp, Đánh giá cuối hội thoại
+ */
 
-// ========== AI CHAT STATE ==========
+// ========== CONFIGURATION ==========
+const BACKEND_API_URL = 'http://127.0.0.1:8000/api/v1';
+
+// ========== STATE ==========
 let aiChatState = {
     isActive: false,
     messages: [],
     topicContext: null,
     isLoading: false,
-    conversationId: null
+    conversationId: null,
+    lastAiMessage: null
 };
 
-// ========== INITIALIZE AI CHAT ==========
+// ========== INITIALIZE ==========
 function initAIChatGame() {
-    console.log('[AI Chat] Initializing AI Chat Game for topic:', currentTopic?.title);
+    console.log('[AI Chat] Initializing for topic:', currentTopic?.title);
 
-    // Reset chat state
     aiChatState = {
         isActive: false,
         messages: [],
         topicContext: currentTopic,
         isLoading: false,
-        conversationId: Date.now()
+        conversationId: Date.now(),
+        lastAiMessage: null
     };
 
-    // Show welcome screen
     showChatWelcomeScreen();
 }
 
-// ========== SHOW WELCOME SCREEN ==========
+// ========== WELCOME SCREEN ==========
 function showChatWelcomeScreen() {
     const chatContainer = document.getElementById('aiChatContainer');
     if (!chatContainer) return;
 
     const topicTitle = currentTopic?.title || 'Chủ đề này';
-    const topicLevel = currentTopic?.level || 'Cơ bản';
 
     chatContainer.innerHTML = `
         <div class="chat-welcome">
@@ -55,18 +53,14 @@ function showChatWelcomeScreen() {
     `;
 }
 
-// ========== START AI CONVERSATION ==========
+// ========== START CONVERSATION ==========
 async function startAIConversation() {
-    console.log('[AI Chat] Starting conversation...');
-
     aiChatState.isActive = true;
     aiChatState.messages = [];
+    aiChatState.lastAiMessage = null;
 
-    // Show chat interface
     showChatInterface();
-
-    // Generate opening message from AI
-    await sendSystemMessage();
+    await sendOpeningMessage();
 }
 
 // ========== SHOW CHAT INTERFACE ==========
@@ -106,6 +100,9 @@ function showChatInterface() {
         </div>
         
         <div class="chat-controls">
+            <button class="chat-control-btn btn-suggest" onclick="requestSuggestion()" title="AI gợi ý câu trả lời">
+                <i class="fas fa-lightbulb"></i> Gợi ý câu
+            </button>
             <button class="chat-control-btn btn-new-chat" onclick="restartConversation()">
                 <i class="fas fa-redo"></i> Cuộc trò chuyện mới
             </button>
@@ -115,204 +112,68 @@ function showChatInterface() {
         </div>
     `;
 
-    // Focus on input
-    setTimeout(() => {
-        document.getElementById('chatInput')?.focus();
-    }, 100);
+    setTimeout(() => document.getElementById('chatInput')?.focus(), 100);
 }
 
-// ========== SEND SYSTEM MESSAGE (AI OPENING) ==========
-async function sendSystemMessage() {
-    // Show typing indicator
+// ========== API CALL ==========
+async function callBackendAPI(messages) {
+    const token = localStorage.getItem('access_token');
+
+    const response = await fetch(`${BACKEND_API_URL}/conversation/chat`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+            messages: messages,
+            topic_id: currentTopic?.id
+        })
+    });
+
+    if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return {
+        reply: data.reply,
+        audio_url: data.audio_url || null
+    };
+}
+
+// ========== SEND OPENING MESSAGE ==========
+async function sendOpeningMessage() {
     showTypingIndicator();
 
     const topicTitle = currentTopic?.title || 'general English';
     const topicWords = currentTopic?.words?.slice(0, 5).map(w => w.word).join(', ') || '';
 
-    // Create context-aware opening
     const systemPrompt = `You are a friendly English tutor helping a Vietnamese student practice English conversation. 
 The current topic is: "${topicTitle}"
 ${topicWords ? `Some vocabulary for this topic: ${topicWords}` : ''}
 
-Start with a friendly greeting and ask a simple question related to the topic to begin the conversation.
+Start with a friendly greeting and ask a simple question related to the topic.
 Keep your response short (1-2 sentences), natural, and appropriate for English learners.
 Respond in English only.`;
 
     try {
-        const response = await callOhMyGPTAPI([
+        const response = await callBackendAPI([
             { role: 'system', content: systemPrompt },
             { role: 'user', content: 'Start the conversation' }
         ]);
 
         removeTypingIndicator();
-
-        if (response) {
-            // response có thể là object {reply, audio_url} hoặc string
-            const replyText = typeof response === 'object' ? response.reply : response;
-            const audioUrl = typeof response === 'object' ? response.audio_url : null;
-            
-            addMessage('ai', replyText, audioUrl);
-            showSuggestions(replyText);
-        } else {
-            addMessage('ai', `Hello! Let's practice English together. Today we're learning about "${topicTitle}". How are you doing today?`);
-            showDefaultSuggestions();
-        }
+        addMessage('ai', response.reply, response.audio_url);
+        showSuggestions(response.reply);
     } catch (error) {
-        console.error('[AI Chat] Error getting opening message:', error);
+        console.error('[AI Chat] Opening message error:', error);
         removeTypingIndicator();
-        addMessage('ai', `Hello! Let's practice English together about "${topicTitle}". How are you today?`);
+        
+        const fallbackMsg = `Hello! Let's practice English together about "${topicTitle}". How are you today?`;
+        addMessage('ai', fallbackMsg);
         showDefaultSuggestions();
     }
-}
-
-// ========== CALL OHMYGPT API ==========
-async function callOhMyGPTAPI(messages) {
-    console.log('[AI Chat] Calling API with messages:', messages.length);
-
-    // Thử gọi qua backend trước (an toàn hơn)
-    const token = localStorage.getItem('access_token');
-
-    try {
-        console.log('[AI Chat] Trying backend proxy...');
-        const backendResponse = await fetch(`${API_BASE_URL}/conversation/chat`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                messages: messages,
-                topic_id: currentTopic?.id
-            })
-        });
-
-        console.log('[AI Chat] Backend response status:', backendResponse.status);
-
-        if (backendResponse.ok) {
-            const data = await backendResponse.json();
-            console.log('[AI Chat] Backend response data:', data);
-
-            // Kiểm tra nếu có lỗi trong response
-            if (data.error) {
-                console.warn('[AI Chat] Backend returned error:', data.error);
-            }
-            
-            // Trả về object với cả reply và audio_url
-            if (data.reply) {
-                return {
-                    reply: data.reply,
-                    audio_url: data.audio_url || null
-                };
-            }
-        } else {
-            console.warn('[AI Chat] Backend proxy failed with status:', backendResponse.status);
-        }
-    } catch (e) {
-        console.warn('[AI Chat] Backend proxy not available:', e.message);
-    }
-
-    // Fallback: Gọi trực tiếp Groq API
-    console.log('[AI Chat] Falling back to direct Groq API call...');
-
-    // Lấy API key từ config file
-    const apiKey = window.APP_CONFIG?.GROQ_API_KEY || AI_CHAT_CONFIG.API_KEY;
-
-    if (!apiKey || apiKey === '' || apiKey === 'your-groq-api-key-here') {
-        console.error('[AI Chat] ⚠️ Chưa cấu hình API key!');
-        console.error('[AI Chat] Vui lòng:');
-        console.error('[AI Chat] 1. Copy file config.example.js thành config.js');
-        console.error('[AI Chat] 2. Thay API key trong config.js');
-        console.error('[AI Chat] 3. Lấy API key miễn phí tại: https://console.groq.com/keys');
-        return generateContextualResponse(messages);
-    }
-
-    try {
-        const response = await fetch(`${AI_CHAT_CONFIG.API_BASE_URL}/chat/completions`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: AI_CHAT_CONFIG.MODEL,
-                messages: messages,
-                max_tokens: AI_CHAT_CONFIG.MAX_TOKENS,
-                temperature: AI_CHAT_CONFIG.TEMPERATURE
-            })
-        });
-
-        console.log('[AI Chat] Direct API response status:', response.status);
-
-        if (response.ok) {
-            const data = await response.json();
-            console.log('[AI Chat] Direct API success:', data.choices?.[0]?.message?.content?.substring(0, 50));
-            return data.choices[0].message.content;
-        } else {
-            const errorText = await response.text();
-            console.error('[AI Chat] Direct API error:', response.status, errorText);
-            return generateContextualResponse(messages);
-        }
-    } catch (error) {
-        console.error('[AI Chat] Direct API connection error:', error);
-        return generateContextualResponse(messages);
-    }
-}
-
-// ========== GENERATE CONTEXTUAL RESPONSE (Smart Fallback) ==========
-function generateContextualResponse(messages) {
-    const lastUserMessage = messages.filter(m => m.role === 'user').pop()?.content || '';
-    const topicTitle = currentTopic?.title || 'English';
-
-    console.log('[AI Chat] Using contextual fallback for:', lastUserMessage);
-
-    // Phân tích câu hỏi và trả lời phù hợp hơn
-    const lowerMessage = lastUserMessage.toLowerCase();
-
-    // Câu hỏi về định nghĩa / nghĩa
-    if (lowerMessage.includes('what is') || lowerMessage.includes('what are') ||
-        lowerMessage.includes('what does') || lowerMessage.includes('meaning')) {
-        return `That's a great question about ${topicTitle}! Let me explain - this is related to the vocabulary we're learning. Can you try using it in a sentence?`;
-    }
-
-    // Câu hỏi cách nói/phát âm
-    if (lowerMessage.includes('how to say') || lowerMessage.includes('how do you say') ||
-        lowerMessage.includes('pronounce')) {
-        return `Good question! To say that in English, you would use the words from our topic "${topicTitle}". Try practicing the pronunciation!`;
-    }
-
-    // Câu hỏi về ngữ pháp
-    if (lowerMessage.includes('grammar') || lowerMessage.includes('correct') ||
-        lowerMessage.includes('wrong') || lowerMessage.includes('mistake')) {
-        return `Grammar is important! In English, we usually structure sentences as Subject + Verb + Object. Would you like me to check a specific sentence?`;
-    }
-
-    // Yêu cầu ví dụ
-    if (lowerMessage.includes('example') || lowerMessage.includes('for example')) {
-        return `Sure! Here's an example related to "${topicTitle}": You could say "I would like to..." or "Could you please...?" Try making your own sentence!`;
-    }
-
-    // Câu chào
-    if (/^(hi|hello|hey|good morning|good afternoon|good evening)/i.test(lastUserMessage)) {
-        return `Hello! I'm happy to help you practice English about "${topicTitle}". What would you like to learn or discuss?`;
-    }
-
-    // Trả lời tốt/khỏe
-    if (/^(i'm fine|i'm good|i'm great|i am fine|i am good|fine|good|great)/i.test(lastUserMessage)) {
-        return `That's wonderful to hear! So, shall we practice some English about "${topicTitle}"? What aspect interests you most?`;
-    }
-
-    // Câu hỏi có dấu ?
-    if (lastUserMessage.includes('?')) {
-        return `That's an interesting question about our topic! In the context of "${topicTitle}", I'd say it depends on the situation. What do you think?`;
-    }
-
-    // Câu khẳng định/bình luận
-    if (lastUserMessage.length > 20) {
-        return `I appreciate your thoughts! You're expressing yourself well in English. Can you tell me more about that?`;
-    }
-
-    // Mặc định
-    return `That's great that you're practicing! Let's continue our conversation about "${topicTitle}". What would you like to know?`;
 }
 
 // ========== SEND USER MESSAGE ==========
@@ -322,24 +183,15 @@ async function sendUserMessage() {
 
     if (!message || aiChatState.isLoading) return;
 
-    // Clear input
     input.value = '';
-
-    // Add user message
     addMessage('user', message);
-
-    // Hide suggestions while waiting
     hideSuggestions();
-
-    // Show typing indicator
     showTypingIndicator();
     aiChatState.isLoading = true;
 
-    // Disable send button
     const sendBtn = document.getElementById('chatSendBtn');
     if (sendBtn) sendBtn.disabled = true;
 
-    // Build messages array for API
     const topicContext = `You are helping a Vietnamese student practice English conversation about "${currentTopic?.title || 'general topics'}". 
 Keep responses short (1-3 sentences), encouraging, and appropriate for English learners.
 If the user makes grammar mistakes, gently correct them while continuing the conversation.
@@ -354,23 +206,14 @@ Respond in English only.`;
     ];
 
     try {
-        const response = await callOhMyGPTAPI(apiMessages);
+        const response = await callBackendAPI(apiMessages);
 
         removeTypingIndicator();
         aiChatState.isLoading = false;
         if (sendBtn) sendBtn.disabled = false;
 
-        if (response) {
-            // response có thể là object {reply, audio_url} hoặc string
-            const replyText = typeof response === 'object' ? response.reply : response;
-            const audioUrl = typeof response === 'object' ? response.audio_url : null;
-            
-            addMessage('ai', replyText, audioUrl);
-            showSuggestions(replyText);
-        } else {
-            addMessage('ai', "That's great! Keep practicing. What else would you like to talk about?");
-            showDefaultSuggestions();
-        }
+        addMessage('ai', response.reply, response.audio_url);
+        showSuggestions(response.reply);
     } catch (error) {
         console.error('[AI Chat] Error:', error);
         removeTypingIndicator();
@@ -380,29 +223,38 @@ Respond in English only.`;
         showError('Không thể kết nối đến AI. Vui lòng thử lại.');
     }
 
-    // Scroll to bottom
     scrollToBottom();
 }
 
-// ========== ADD MESSAGE TO CHAT ==========
+// ========== ADD MESSAGE ==========
 function addMessage(type, content, audioUrl = null) {
     const messagesContainer = document.getElementById('chatMessages');
     if (!messagesContainer) return;
 
-    // Save to state
-    aiChatState.messages.push({ type, content, audioUrl, timestamp: new Date() });
+    const messageId = `msg-${Date.now()}`;
+    
+    aiChatState.messages.push({ type, content, audioUrl, timestamp: new Date(), id: messageId });
+    
+    if (type === 'ai') {
+        aiChatState.lastAiMessage = content;
+    }
 
-    // Create message element
     const messageDiv = document.createElement('div');
     messageDiv.className = `chat-message ${type}-message`;
+    messageDiv.id = messageId;
 
     const avatar = type === 'ai' ? '🤖' : '👤';
     const time = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 
-    // Thêm nút play audio cho tin nhắn AI
-    const audioButton = (type === 'ai' && audioUrl) 
+    const aiAudioButton = (type === 'ai' && audioUrl) 
         ? `<button class="play-audio-btn" onclick="playMessageAudio('${audioUrl}')" title="Nghe">
                <i class="fas fa-volume-up"></i>
+           </button>` 
+        : '';
+
+    const userEvalButton = (type === 'user') 
+        ? `<button class="evaluate-btn" onclick="evaluateUserMessage('${messageId}', '${content.replace(/'/g, "\\'")}')" title="Đánh giá câu này">
+               <i class="fas fa-check-circle"></i> Đánh giá
            </button>` 
         : '';
 
@@ -410,46 +262,32 @@ function addMessage(type, content, audioUrl = null) {
         <div class="message-avatar">${avatar}</div>
         <div class="message-content">
             ${content}
-            ${audioButton}
+            ${aiAudioButton}
+            ${userEvalButton}
             <span class="message-time">${time}</span>
         </div>
+        <div class="message-evaluation" id="eval-${messageId}" style="display: none;"></div>
     `;
 
     messagesContainer.appendChild(messageDiv);
     scrollToBottom();
     
-    // Tự động play audio cho tin nhắn AI
     if (type === 'ai' && audioUrl) {
         playMessageAudio(audioUrl);
     }
 }
 
-// ========== PLAY MESSAGE AUDIO ==========
+// ========== PLAY AUDIO ==========
 function playMessageAudio(audioUrl) {
     if (!audioUrl) return;
     
-    console.log('[AI Chat] Playing audio:', audioUrl);
-    
-    // Build full URL if relative
     let fullUrl = audioUrl;
     if (audioUrl.startsWith('/')) {
-        // Relative URL - add backend base
-        const backendBase = API_BASE_URL.replace('/api/v1', '');
-        fullUrl = backendBase + audioUrl;
+        fullUrl = BACKEND_API_URL.replace('/api/v1', '') + audioUrl;
     }
     
-    console.log('[AI Chat] Full audio URL:', fullUrl);
-    
     const audio = new Audio(fullUrl);
-    audio.onloadstart = () => console.log('[AI Chat] Audio loading...');
-    audio.oncanplay = () => console.log('[AI Chat] Audio can play');
-    audio.onplay = () => console.log('[AI Chat] Audio playing');
-    audio.onended = () => console.log('[AI Chat] Audio ended');
-    audio.onerror = (e) => console.error('[AI Chat] Audio error:', e);
-    
-    audio.play().catch(err => {
-        console.error('[AI Chat] Failed to play audio:', err);
-    });
+    audio.play().catch(err => console.error('[AI Chat] Audio error:', err));
 }
 
 // ========== TYPING INDICATOR ==========
@@ -457,7 +295,6 @@ function showTypingIndicator() {
     const messagesContainer = document.getElementById('chatMessages');
     if (!messagesContainer) return;
 
-    // Remove any existing indicator
     removeTypingIndicator();
 
     const typingDiv = document.createElement('div');
@@ -467,9 +304,7 @@ function showTypingIndicator() {
         <div class="message-avatar">🤖</div>
         <div class="message-content">
             <div class="typing-indicator">
-                <span></span>
-                <span></span>
-                <span></span>
+                <span></span><span></span><span></span>
             </div>
         </div>
     `;
@@ -479,8 +314,7 @@ function showTypingIndicator() {
 }
 
 function removeTypingIndicator() {
-    const indicator = document.getElementById('typingIndicator');
-    if (indicator) indicator.remove();
+    document.getElementById('typingIndicator')?.remove();
 }
 
 // ========== SUGGESTIONS ==========
@@ -488,9 +322,7 @@ function showSuggestions(aiMessage) {
     const chipsContainer = document.getElementById('suggestionChips');
     if (!chipsContainer) return;
 
-    // Generate contextual suggestions based on AI message
-    let suggestions = generateSuggestions(aiMessage);
-
+    const suggestions = generateSuggestions(aiMessage);
     chipsContainer.innerHTML = suggestions.map(s =>
         `<button class="suggestion-chip" onclick="useSuggestion('${s.replace(/'/g, "\\'")}')">${s}</button>`
     ).join('');
@@ -655,12 +487,333 @@ function restartConversation() {
     }
 }
 
-function endConversation() {
+async function endConversation() {
+    if (aiChatState.messages.length < 2) {
+        aiChatState.isActive = false;
+        showChatWelcomeScreen();
+        return;
+    }
+
+    // Hỏi xác nhận
+    if (!confirm('Bạn có muốn kết thúc và xem đánh giá?')) return;
+
+    // Gọi API để lấy đánh giá
+    try {
+        showTypingIndicator();
+        
+        const token = localStorage.getItem('access_token');
+        const response = await fetch(`${BACKEND_API_URL}/conversation/end-simple`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                messages: aiChatState.messages.map(m => ({
+                    role: m.type === 'ai' ? 'ai' : 'user',
+                    content: m.content,
+                    audio_url: m.audioUrl || null
+                })),
+                topic: currentTopic?.title || 'English Practice'
+            })
+        });
+
+        removeTypingIndicator();
+
+        if (response.ok) {
+            const evaluation = await response.json();
+            showConversationEvaluation(evaluation);
+        } else {
+            console.error('End conversation error:', response.status);
+            showFallbackEvaluation();
+        }
+    } catch (error) {
+        console.error('End conversation error:', error);
+        removeTypingIndicator();
+        showFallbackEvaluation();
+    }
+
     aiChatState.isActive = false;
-    showChatWelcomeScreen();
 }
 
-// ========== EXPORT FUNCTIONS ==========
+// ========== HIỂN THỊ ĐÁNH GIÁ CUỐI CUỘC HỘI THOẠI ==========
+function showConversationEvaluation(evaluation) {
+    const chatContainer = document.getElementById('aiChatContainer');
+    if (!chatContainer) return;
+
+    const scores = evaluation.scores || {};
+    
+    chatContainer.innerHTML = `
+        <div class="evaluation-result">
+            <div class="eval-header">
+                <div class="eval-icon">🎉</div>
+                <h3>Hoàn thành hội thoại!</h3>
+                <p>Bạn đã hoàn thành ${evaluation.total_turns || 0} lượt trò chuyện</p>
+            </div>
+            
+            <div class="eval-scores">
+                <div class="score-item">
+                    <div class="score-label">Tổng điểm</div>
+                    <div class="score-value overall">${(scores.overall || 7).toFixed(1)}</div>
+                </div>
+                <div class="score-details">
+                    <div class="score-detail">
+                        <span>Trôi chảy:</span>
+                        <div class="score-bar"><div style="width: ${(scores.fluency || 7) * 10}%"></div></div>
+                        <span>${(scores.fluency || 7).toFixed(1)}</span>
+                    </div>
+                    <div class="score-detail">
+                        <span>Ngữ pháp:</span>
+                        <div class="score-bar"><div style="width: ${(scores.grammar || 7) * 10}%"></div></div>
+                        <span>${(scores.grammar || 7).toFixed(1)}</span>
+                    </div>
+                    <div class="score-detail">
+                        <span>Từ vựng:</span>
+                        <div class="score-bar"><div style="width: ${(scores.vocabulary || 7) * 10}%"></div></div>
+                        <span>${(scores.vocabulary || 7).toFixed(1)}</span>
+                    </div>
+                    <div class="score-detail">
+                        <span>Liên quan:</span>
+                        <div class="score-bar"><div style="width: ${(scores.relevance || 7) * 10}%"></div></div>
+                        <span>${(scores.relevance || 7).toFixed(1)}</span>
+                    </div>
+                </div>
+            </div>
+            
+            ${evaluation.grammar_errors?.length > 0 ? `
+            <div class="eval-section">
+                <h4>📝 Lỗi ngữ pháp cần chú ý</h4>
+                <div class="grammar-errors">
+                    ${evaluation.grammar_errors.slice(0, 5).map(err => `
+                        <div class="error-item">
+                            <div class="error-original">❌ ${err.original}</div>
+                            <div class="error-corrected">✅ ${err.corrected}</div>
+                            <div class="error-explanation">${err.explanation}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            ` : ''}
+            
+            ${evaluation.strengths?.length > 0 ? `
+            <div class="eval-section">
+                <h4>💪 Điểm mạnh</h4>
+                <ul class="strengths-list">
+                    ${evaluation.strengths.map(s => `<li>✅ ${s}</li>`).join('')}
+                </ul>
+            </div>
+            ` : ''}
+            
+            ${evaluation.areas_to_improve?.length > 0 ? `
+            <div class="eval-section">
+                <h4>📈 Cần cải thiện</h4>
+                <ul class="improve-list">
+                    ${evaluation.areas_to_improve.map(s => `<li>🎯 ${s}</li>`).join('')}
+                </ul>
+            </div>
+            ` : ''}
+            
+            <div class="eval-section">
+                <h4>💬 Nhận xét</h4>
+                <p class="overall-feedback">${evaluation.overall_feedback || 'Buổi luyện tập tốt!'}</p>
+            </div>
+            
+            ${evaluation.tips?.length > 0 ? `
+            <div class="eval-section">
+                <h4>💡 Mẹo luyện tập</h4>
+                <ul class="tips-list">
+                    ${evaluation.tips.map(t => `<li>💡 ${t}</li>`).join('')}
+                </ul>
+            </div>
+            ` : ''}
+            
+            <div class="eval-actions">
+                <button class="btn-primary" onclick="startAIConversation()">
+                    <i class="fas fa-redo"></i> Luyện tập lại
+                </button>
+                <button class="btn-secondary" onclick="showChatWelcomeScreen()">
+                    <i class="fas fa-home"></i> Quay lại
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function showFallbackEvaluation() {
+    showConversationEvaluation({
+        total_turns: aiChatState.messages.filter(m => m.type === 'user').length,
+        scores: { fluency: 7, grammar: 7, vocabulary: 7, relevance: 7.5, overall: 7 },
+        strengths: ['Đã hoàn thành cuộc hội thoại'],
+        areas_to_improve: ['Tiếp tục luyện tập thường xuyên'],
+        overall_feedback: 'Bạn đã hoàn thành buổi luyện tập! Hãy tiếp tục cố gắng nhé.',
+        tips: ['Luyện tập nói mỗi ngày 15-30 phút']
+    });
+}
+
+// ========== GỢI Ý CÂU TRẢ LỜI ==========
+async function requestSuggestion() {
+    if (!aiChatState.lastAiMessage) {
+        alert('Hãy đợi AI nói trước để được gợi ý câu trả lời.');
+        return;
+    }
+
+    try {
+        const token = localStorage.getItem('access_token');
+        const response = await fetch(`${BACKEND_API_URL}/conversation/suggest-reply`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                ai_message: aiChatState.lastAiMessage,
+                topic: currentTopic?.title || 'English Practice'
+            })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            showSuggestionPopup(data);
+        } else {
+            console.error('Suggest reply error:', response.status);
+            showDefaultSuggestions();
+        }
+    } catch (error) {
+        console.error('Suggest reply error:', error);
+        showDefaultSuggestions();
+    }
+}
+
+function showSuggestionPopup(data) {
+    // Hiển thị popup với gợi ý
+    const existingPopup = document.getElementById('suggestionPopup');
+    if (existingPopup) existingPopup.remove();
+
+    const popup = document.createElement('div');
+    popup.id = 'suggestionPopup';
+    popup.className = 'suggestion-popup';
+    popup.innerHTML = `
+        <div class="suggestion-popup-content">
+            <div class="popup-header">
+                <h4>💡 Gợi ý câu trả lời</h4>
+                <button class="close-popup" onclick="closeSuggestionPopup()">&times;</button>
+            </div>
+            
+            <div class="suggestion-options">
+                ${data.suggestions?.map(s => `
+                    <button class="suggestion-option" onclick="useSuggestionFromPopup('${s.replace(/'/g, "\\'")}')">
+                        ${s}
+                    </button>
+                `).join('') || ''}
+            </div>
+            
+            <div class="example-section">
+                <h5>📝 Mẫu câu đầy đủ:</h5>
+                <div class="example-sentence" onclick="useSuggestionFromPopup('${(data.example_sentence || '').replace(/'/g, "\\'")}')">
+                    ${data.example_sentence || 'I would like to continue our conversation.'}
+                </div>
+            </div>
+            
+            ${data.explanation ? `
+            <div class="explanation-section">
+                <h5>📚 Giải thích:</h5>
+                <p>${data.explanation}</p>
+            </div>
+            ` : ''}
+        </div>
+    `;
+
+    document.getElementById('aiChatContainer')?.appendChild(popup);
+}
+
+function closeSuggestionPopup() {
+    document.getElementById('suggestionPopup')?.remove();
+}
+
+function useSuggestionFromPopup(text) {
+    const input = document.getElementById('chatInput');
+    if (input) {
+        input.value = text;
+        input.focus();
+    }
+    closeSuggestionPopup();
+}
+
+// ========== ĐÁNH GIÁ TIN NHẮN USER ==========
+async function evaluateUserMessage(messageId, userText) {
+    const evalContainer = document.getElementById(`eval-${messageId}`);
+    if (!evalContainer) return;
+
+    // Hiển thị loading
+    evalContainer.style.display = 'block';
+    evalContainer.innerHTML = '<div class="eval-loading"><i class="fas fa-spinner fa-spin"></i> Đang đánh giá...</div>';
+
+    try {
+        const token = localStorage.getItem('access_token');
+        const response = await fetch(`${BACKEND_API_URL}/conversation/evaluate-message`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                user_text: userText,
+                ai_previous_message: aiChatState.lastAiMessage,
+                topic: currentTopic?.title || 'English Practice'
+            })
+        });
+
+        if (response.ok) {
+            const evaluation = await response.json();
+            showMessageEvaluation(evalContainer, evaluation);
+        } else {
+            evalContainer.innerHTML = '<div class="eval-error">Không thể đánh giá lúc này.</div>';
+        }
+    } catch (error) {
+        console.error('Evaluate message error:', error);
+        evalContainer.innerHTML = '<div class="eval-error">Lỗi kết nối. Vui lòng thử lại.</div>';
+    }
+}
+
+function showMessageEvaluation(container, evaluation) {
+    const isCorrect = evaluation.is_correct;
+    const corrections = evaluation.grammar_corrections || [];
+
+    container.innerHTML = `
+        <div class="message-eval ${isCorrect ? 'correct' : 'has-errors'}">
+            ${isCorrect ? 
+                `<div class="eval-status correct">✅ Câu đúng ngữ pháp!</div>` :
+                `<div class="eval-status incorrect">⚠️ Cần sửa một số lỗi</div>`
+            }
+            
+            ${!isCorrect && evaluation.corrected_text ? `
+                <div class="corrected-text">
+                    <strong>Sửa lại:</strong> ${evaluation.corrected_text}
+                </div>
+            ` : ''}
+            
+            ${corrections.length > 0 ? `
+                <div class="corrections-list">
+                    ${corrections.map(c => `
+                        <div class="correction-item">
+                            <span class="original">❌ ${c.original}</span>
+                            <span class="arrow">→</span>
+                            <span class="corrected">✅ ${c.corrected}</span>
+                            <div class="explanation">${c.explanation}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : ''}
+            
+            <div class="eval-feedback">
+                <span class="relevance">Độ phù hợp: ${evaluation.relevance_score}/10</span>
+                <span class="encouragement">${evaluation.encouragement}</span>
+            </div>
+        </div>
+    `;
+}
+
+// ========== EXPORT ==========
 window.initAIChatGame = initAIChatGame;
 window.startAIConversation = startAIConversation;
 window.sendUserMessage = sendUserMessage;
@@ -669,5 +822,11 @@ window.useSuggestion = useSuggestion;
 window.handleChatKeypress = handleChatKeypress;
 window.restartConversation = restartConversation;
 window.endConversation = endConversation;
+window.requestSuggestion = requestSuggestion;
+window.evaluateUserMessage = evaluateUserMessage;
+window.closeSuggestionPopup = closeSuggestionPopup;
+window.useSuggestionFromPopup = useSuggestionFromPopup;
+window.playMessageAudio = playMessageAudio;
+window.showChatWelcomeScreen = showChatWelcomeScreen;
 
-console.log('[AI Chat] Module loaded successfully');
+console.log('[AI Chat] ✅ Module loaded');

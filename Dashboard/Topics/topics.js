@@ -316,9 +316,13 @@ function closeLearningModal() {
 }
 
 function initWordMatchingGame() {
+    console.log('[initWordMatchingGame] CALLED!');
     const wordsColumn = document.getElementById('wordsColumn');
     const meaningsColumn = document.getElementById('meaningsColumn');
     const connectionsDisplay = document.getElementById('connectionsDisplay');
+    
+    console.log('[initWordMatchingGame] wordsColumn:', wordsColumn);
+    console.log('[initWordMatchingGame] currentTopic:', currentTopic);
 
     wordsColumn.innerHTML = '';
     meaningsColumn.innerHTML = '';
@@ -343,7 +347,6 @@ function initWordMatchingGame() {
     shuffledWords.forEach((wordObj, index) => {
         const wordItem = document.createElement('div');
         wordItem.className = 'word-item';
-        wordItem.style.cssText = 'position: relative; display: flex; align-items: center; justify-content: center;';
         wordItem.dataset.word = wordObj.word;
         const vocabId = wordObj.id || wordObj.vocabulary_id;
         wordItem.dataset.vocabId = vocabId || '';
@@ -351,44 +354,45 @@ function initWordMatchingGame() {
         // Word text span
         const wordText = document.createElement('span');
         wordText.className = 'word-text';
-        wordText.style.cssText = 'flex: 1;';
         wordText.textContent = wordObj.word;
         wordItem.appendChild(wordText);
         
-        // Save button - always show with inline styles
+        // Save button - bookmark icon
         const saveBtn = document.createElement('button');
-        const isSaved = vocabId && savedVocabularyIds.has(vocabId);
+        const isSaved = vocabId && savedVocabularyIds.has(Number(vocabId));
         saveBtn.className = 'save-vocab-btn' + (isSaved ? ' saved' : '');
         saveBtn.dataset.vocabId = vocabId || index;
         saveBtn.dataset.word = wordObj.word;
-        saveBtn.style.cssText = `
-            position: absolute;
-            right: 8px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            border: none;
-            background: ${isSaved ? '#fffbeb' : 'rgba(255,255,255,0.9)'};
-            color: ${isSaved ? '#f59e0b' : '#888'};
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            z-index: 10;
-        `;
         saveBtn.innerHTML = isSaved 
             ? '<i class="fas fa-bookmark"></i>' 
             : '<i class="far fa-bookmark"></i>';
         saveBtn.title = isSaved ? 'Đã lưu - Bấm để xóa' : 'Lưu vào sổ từ vựng';
+        // Force inline styles to ensure visibility
+        saveBtn.style.cssText = `
+            position: absolute !important;
+            right: 8px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            width: 32px !important;
+            height: 32px !important;
+            border-radius: 50% !important;
+            border: 2px solid #fbbf24 !important;
+            background: rgba(251, 191, 36, 0.2) !important;
+            color: #fbbf24 !important;
+            cursor: pointer !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 14px !important;
+            z-index: 1000 !important;
+        `;
+        console.log('[SaveBtn] Created for:', wordObj.word, saveBtn);
         saveBtn.onclick = (e) => {
             e.stopPropagation();
             e.preventDefault();
             console.log('[SaveVocab] Clicked:', wordObj.word, 'ID:', vocabId);
             if (vocabId) {
-                toggleSaveVocabulary(vocabId);
+                toggleSaveVocabulary(Number(vocabId));
             } else {
                 // If no ID, save by word text
                 saveVocabularyByWord(wordObj.word, wordObj.meaning);
@@ -1706,7 +1710,8 @@ async function loadSavedVocabularyIds() {
         if (response.ok) {
             const data = await response.json();
             const items = data.items || data.data || data || [];
-            savedVocabularyIds = new Set(items.map(v => v.id || v.vocabulary_id));
+            savedVocabularyIds = new Set(items.map(v => Number(v.id || v.vocabulary_id)));
+            console.log('[SaveVocab] Loaded saved IDs:', savedVocabularyIds);
         }
     } catch (error) {
         console.error('Load saved vocabulary error:', error);
@@ -1810,5 +1815,11 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSavedVocabularyIds();
 });
 
+// Export functions to window for use in other modules
+window.toggleSaveVocabulary = toggleSaveVocabulary;
+window.savedVocabularyIds = savedVocabularyIds;
+window.saveVocabularyToNotebook = saveVocabularyToNotebook;
+window.unsaveVocabularyFromNotebook = unsaveVocabularyFromNotebook;
+window.updateSaveButtonUI = updateSaveButtonUI;
 
 // End of file

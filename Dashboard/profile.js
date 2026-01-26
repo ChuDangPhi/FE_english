@@ -66,21 +66,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             submitBtn.disabled = true;
 
             try {
-                // Prepare request body
+                // Prepare request body - match backend schema
                 const updateData = {
                     full_name: fullName,
-                    phone_number: phone,
+                    phone: phone,  // Backend expects 'phone' not 'phone_number'
                     bio: bio
                 };
 
-                // Only send password if user entered something
-                if (password && password.trim() !== "") {
-                    updateData.password = password;
-                }
-
-                // Determine API endpoint - likely PUT to /users/me
-                const response = await fetch('http://localhost:8000/api/v1/auth/me', {
-                    method: 'PUT', // or PATCH
+                // 1. Update profile via PUT /user/profile
+                const response = await fetch('http://localhost:8000/api/v1/user/profile', {
+                    method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
@@ -88,26 +83,52 @@ document.addEventListener('DOMContentLoaded', async () => {
                     body: JSON.stringify(updateData)
                 });
 
+                // 2. If user wants to change password, call separate endpoint
+                if (password && password.trim() !== "") {
+                    const currentPassword = prompt('Nhập mật khẩu hiện tại để xác nhận đổi mật khẩu:');
+                    if (currentPassword) {
+                        const pwResponse = await fetch('http://localhost:8000/api/v1/user/change-password', {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({
+                                current_password: currentPassword,
+                                new_password: password,
+                                confirm_password: password
+                            })
+                        });
+                        
+                        if (!pwResponse.ok) {
+                            const pwError = await pwResponse.json().catch(() => ({}));
+                            alert('Lỗi đổi mật khẩu: ' + (pwError.detail || 'Mật khẩu hiện tại không đúng'));
+                        }
+                    }
+                }
+
                 if (response.ok) {
                     const updatedUser = await response.json();
 
-                    // Update localStorage
+                    // Update localStorage with server response
                     localStorage.setItem('user', JSON.stringify(updatedUser));
 
-                    // Update UI text (e.g. sidebar name)
+                    // Update UI
                     fillProfileForm(updatedUser);
 
                     alert('Cập nhật thông tin thành công!');
                 } else {
-                    // Fallback saving to localStorage if server fails (e.g. 405 Method Not Allowed)
-                    console.warn('Server update failed, saving locally only.');
+                    const errorData = await response.json().catch(() => ({}));
+                    console.error('Server update failed:', errorData);
+                    
+                    // Fallback saving to localStorage
                     const currentUser = JSON.parse(localStorage.getItem('user')) || {};
-                    const updatedUser = { ...currentUser, full_name: fullName, phone_number: phone, bio: bio };
+                    const updatedUser = { ...currentUser, full_name: fullName, phone: phone, bio: bio };
 
                     localStorage.setItem('user', JSON.stringify(updatedUser));
                     fillProfileForm(updatedUser);
 
-                    alert('Lưu thành công vào máy cục bộ! (Server chưa hỗ trợ cập nhật)');
+                    alert('Lỗi server: ' + (errorData.detail || 'Dữ liệu đã lưu cục bộ'));
                 }
             } catch (error) {
                 console.error('Error updating profile:', error);

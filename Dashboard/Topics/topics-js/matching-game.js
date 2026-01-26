@@ -5,6 +5,7 @@
     let userMatches = [];
 
     window.initWordMatchingGame = function () {
+        console.log('[matching-game.js] initWordMatchingGame CALLED!');
         if (!currentTopic || !currentTopic.words) return;
 
         const wordsColumn = document.getElementById('wordsColumn');
@@ -27,13 +28,46 @@
         const shuffledWords = [...currentTopic.words].sort(() => Math.random() - 0.5);
         const shuffledMeanings = [...currentTopic.words].sort(() => Math.random() - 0.5);
 
-        // Create word items
+        // Create word items with bookmark button
         shuffledWords.forEach((wordObj, index) => {
             const wordItem = document.createElement('div');
             wordItem.className = 'word-item';
-            wordItem.textContent = wordObj.word;
             wordItem.dataset.word = wordObj.word;
-            wordItem.onclick = () => selectWord(wordItem, wordObj.word);
+            const vocabId = wordObj.id || wordObj.vocabulary_id;
+            wordItem.dataset.vocabId = vocabId || '';
+            
+            // Word text span
+            const wordText = document.createElement('span');
+            wordText.className = 'word-text';
+            wordText.textContent = wordObj.word;
+            wordItem.appendChild(wordText);
+            
+            // Save button - bookmark icon
+            const saveBtn = document.createElement('button');
+            const isSaved = window.savedVocabularyIds && vocabId && window.savedVocabularyIds.has(Number(vocabId));
+            saveBtn.className = 'save-vocab-btn' + (isSaved ? ' saved' : '');
+            saveBtn.dataset.vocabId = vocabId || index;
+            saveBtn.dataset.word = wordObj.word;
+            saveBtn.innerHTML = isSaved 
+                ? '<i class="fas fa-bookmark"></i>' 
+                : '<i class="far fa-bookmark"></i>';
+            saveBtn.title = isSaved ? 'Đã lưu - Bấm để xóa' : 'Lưu vào sổ từ vựng';
+            saveBtn.onclick = (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                console.log('[SaveVocab] Clicked:', wordObj.word, 'ID:', vocabId);
+                if (vocabId && typeof window.toggleSaveVocabulary === 'function') {
+                    window.toggleSaveVocabulary(Number(vocabId));
+                }
+            };
+            wordItem.appendChild(saveBtn);
+            
+            wordItem.onclick = (e) => {
+                // Don't select if clicking save button
+                if (!e.target.closest('.save-vocab-btn')) {
+                    selectWord(wordItem, wordObj.word);
+                }
+            };
             wordsColumn.appendChild(wordItem);
         });
 

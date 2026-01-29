@@ -171,7 +171,8 @@ async function fetchTopics() {
             id: t.id,
             title: t.title,
             description: t.description,
-            icon: "📚", // Default icon as API might not return one or return url
+            thumbnail_url: t.thumbnail_url || null, // URL ảnh thumbnail từ API
+            icon: "📚", // Fallback icon nếu không có thumbnail
             level: t.difficulty_level === 'beginner' ? 'Cơ bản' : (t.difficulty_level === 'intermediate' ? 'Trung bình' : 'Nâng cao'),
             category: t.category, // daily_life, business, etc.
             words: [] // Will be fetched when clicking "Học ngay"
@@ -204,8 +205,14 @@ function renderTopics(toRender) {
     toRender.forEach(topic => {
         const card = document.createElement('div');
         card.className = 'topic-card';
+        
+        // Hiển thị thumbnail hoặc icon fallback
+        const thumbnailHtml = topic.thumbnail_url 
+            ? `<div class="topic-thumbnail"><img src="${topic.thumbnail_url}" alt="${topic.title}" onerror="this.parentElement.innerHTML='<div class=\\'topic-icon\\'>📚</div>'"></div>`
+            : `<div class="topic-icon">${topic.icon}</div>`;
+        
         card.innerHTML = `
-            <div class="topic-icon">${topic.icon}</div>
+            ${thumbnailHtml}
             <h3>${topic.title}</h3>
             <p>${topic.description}</p>
             <span class="topic-level">${topic.level}</span>

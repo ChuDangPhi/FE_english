@@ -1,4 +1,4 @@
-/**
+﻿/**
  * AI Chat Module - Hội thoại với AI
  * Tính năng: Chat, Gợi ý câu, Đánh giá ngữ pháp, Đánh giá cuối hội thoại
  */
@@ -41,7 +41,7 @@ function showChatWelcomeScreen() {
 
     chatContainer.innerHTML = `
         <div class="chat-welcome">
-            <div class="welcome-icon">🤖</div>
+            <div class="welcome-icon"></div>
             <h3>Hội thoại với AI</h3>
             <p>Luyện giao tiếp tiếng Anh về chủ đề <strong>"${topicTitle}"</strong><br>
             AI sẽ đóng vai người bản xứ để trò chuyện với bạn.</p>
@@ -72,33 +72,33 @@ function showChatInterface() {
 
     chatContainer.innerHTML = `
         <div class="chat-header">
-            <div class="ai-avatar">🤖</div>
+            <div class="ai-avatar"></div>
             <div class="ai-info">
                 <h4>AI English Tutor</h4>
                 <p>Đang trò chuyện về: ${topicTitle}</p>
             </div>
         </div>
-        
+
         <div class="chat-messages" id="chatMessages">
             <!-- Messages will be added here -->
         </div>
-        
+
         <div class="suggestion-chips" id="suggestionChips">
             <!-- Suggestions will be added here -->
         </div>
-        
+
         <div class="chat-input-container">
             <button class="voice-input-btn" id="voiceInputBtn" onclick="toggleVoiceInput()" title="Nhập bằng giọng nói">
                 <i class="fas fa-microphone"></i>
             </button>
-            <input type="text" class="chat-input" id="chatInput" 
-                   placeholder="Nhập tin nhắn tiếng Anh..." 
+            <input type="text" class="chat-input" id="chatInput"
+                   placeholder="Nhập tin nhắn tiếng Anh..."
                    onkeypress="handleChatKeypress(event)">
             <button class="chat-send-btn" id="chatSendBtn" onclick="sendUserMessage()">
                 <i class="fas fa-paper-plane"></i>
             </button>
         </div>
-        
+
         <div class="chat-controls">
             <button class="chat-control-btn btn-suggest" onclick="requestSuggestion()" title="AI gợi ý câu trả lời">
                 <i class="fas fa-lightbulb"></i> Gợi ý câu
@@ -149,7 +149,7 @@ async function sendOpeningMessage() {
     const topicTitle = currentTopic?.title || 'general English';
     const topicWords = currentTopic?.words?.slice(0, 5).map(w => w.word).join(', ') || '';
 
-    const systemPrompt = `You are a friendly English tutor helping a Vietnamese student practice English conversation. 
+    const systemPrompt = `You are a friendly English tutor helping a Vietnamese student practice English conversation.
 The current topic is: "${topicTitle}"
 ${topicWords ? `Some vocabulary for this topic: ${topicWords}` : ''}
 
@@ -169,7 +169,7 @@ Respond in English only.`;
     } catch (error) {
         console.error('[AI Chat] Opening message error:', error);
         removeTypingIndicator();
-        
+
         const fallbackMsg = `Hello! Let's practice English together about "${topicTitle}". How are you today?`;
         addMessage('ai', fallbackMsg);
         showDefaultSuggestions();
@@ -192,7 +192,7 @@ async function sendUserMessage() {
     const sendBtn = document.getElementById('chatSendBtn');
     if (sendBtn) sendBtn.disabled = true;
 
-    const topicContext = `You are helping a Vietnamese student practice English conversation about "${currentTopic?.title || 'general topics'}". 
+    const topicContext = `You are helping a Vietnamese student practice English conversation about "${currentTopic?.title || 'general topics'}".
 Keep responses short (1-3 sentences), encouraging, and appropriate for English learners.
 If the user makes grammar mistakes, gently correct them while continuing the conversation.
 Respond in English only.`;
@@ -232,9 +232,9 @@ function addMessage(type, content, audioUrl = null) {
     if (!messagesContainer) return;
 
     const messageId = `msg-${Date.now()}`;
-    
+
     aiChatState.messages.push({ type, content, audioUrl, timestamp: new Date(), id: messageId });
-    
+
     if (type === 'ai') {
         aiChatState.lastAiMessage = content;
     }
@@ -243,19 +243,19 @@ function addMessage(type, content, audioUrl = null) {
     messageDiv.className = `chat-message ${type}-message`;
     messageDiv.id = messageId;
 
-    const avatar = type === 'ai' ? '🤖' : '👤';
+    const avatar = type === 'ai' ? '' : '';
     const time = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 
-    const aiAudioButton = (type === 'ai' && audioUrl) 
+    const aiAudioButton = (type === 'ai' && audioUrl)
         ? `<button class="play-audio-btn" onclick="playMessageAudio('${audioUrl}')" title="Nghe">
                <i class="fas fa-volume-up"></i>
-           </button>` 
+           </button>`
         : '';
 
-    const userEvalButton = (type === 'user') 
+    const userEvalButton = (type === 'user')
         ? `<button class="evaluate-btn" onclick="evaluateUserMessage('${messageId}', '${content.replace(/'/g, "\\'")}')" title="Đánh giá câu này">
                <i class="fas fa-check-circle"></i> Đánh giá
-           </button>` 
+           </button>`
         : '';
 
     messageDiv.innerHTML = `
@@ -271,7 +271,7 @@ function addMessage(type, content, audioUrl = null) {
 
     messagesContainer.appendChild(messageDiv);
     scrollToBottom();
-    
+
     if (type === 'ai' && audioUrl) {
         playMessageAudio(audioUrl);
     }
@@ -280,12 +280,12 @@ function addMessage(type, content, audioUrl = null) {
 // ========== PLAY AUDIO ==========
 function playMessageAudio(audioUrl) {
     if (!audioUrl) return;
-    
+
     let fullUrl = audioUrl;
     if (audioUrl.startsWith('/')) {
         fullUrl = BACKEND_API_URL.replace('/api/v1', '') + audioUrl;
     }
-    
+
     const audio = new Audio(fullUrl);
     audio.play().catch(err => console.error('[AI Chat] Audio error:', err));
 }
@@ -301,7 +301,7 @@ function showTypingIndicator() {
     typingDiv.className = 'chat-message ai-message';
     typingDiv.id = 'typingIndicator';
     typingDiv.innerHTML = `
-        <div class="message-avatar">🤖</div>
+        <div class="message-avatar"></div>
         <div class="message-content">
             <div class="typing-indicator">
                 <span></span><span></span><span></span>
@@ -347,7 +347,6 @@ function showDefaultSuggestions() {
 function generateSuggestions(aiMessage) {
     const lowerMsg = aiMessage.toLowerCase();
 
-    // Based on question type in AI message
     if (lowerMsg.includes('how are you') || lowerMsg.includes('how do you feel')) {
         return ["I'm great, thanks!", "I'm doing well.", "I'm fine, and you?", "Pretty good!"];
     }
@@ -361,7 +360,6 @@ function generateSuggestions(aiMessage) {
         return ["Yes, I do.", "No, I don't.", "I'm not sure.", "Can you repeat?"];
     }
 
-    // Default suggestions
     return ["That's interesting!", "Tell me more.", "I understand.", "Can you explain?"];
 }
 
@@ -423,9 +421,7 @@ function startVoiceInput() {
     voiceRecognition.onerror = (event) => {
         console.error('[Voice] Error:', event.error);
         stopVoiceInput();
-        if (event.error === 'no-speech') {
-            // Silent, don't show error
-        } else {
+        if (event.error !== 'no-speech') {
             alert('Lỗi nhận diện giọng nói: ' + event.error);
         }
     };
@@ -477,7 +473,6 @@ function showError(message) {
     messagesContainer.appendChild(errorDiv);
     scrollToBottom();
 
-    // Auto remove after 5 seconds
     setTimeout(() => errorDiv.remove(), 5000);
 }
 
@@ -494,13 +489,11 @@ async function endConversation() {
         return;
     }
 
-    // Hỏi xác nhận
     if (!confirm('Bạn có muốn kết thúc và xem đánh giá?')) return;
 
-    // Gọi API để lấy đánh giá
     try {
         showTypingIndicator();
-        
+
         const token = localStorage.getItem('access_token');
         const response = await fetch(`${BACKEND_API_URL}/conversation/end-simple`, {
             method: 'POST',
@@ -524,7 +517,6 @@ async function endConversation() {
             const evaluation = await response.json();
             showConversationEvaluation(evaluation);
         } else {
-            console.error('End conversation error:', response.status);
             showFallbackEvaluation();
         }
     } catch (error) {
@@ -536,21 +528,21 @@ async function endConversation() {
     aiChatState.isActive = false;
 }
 
-// ========== HIỂN THỊ ĐÁNH GIÁ CUỐI CUỘC HỘI THOẠI ==========
+// ========== CONVERSATION EVALUATION ==========
 function showConversationEvaluation(evaluation) {
     const chatContainer = document.getElementById('aiChatContainer');
     if (!chatContainer) return;
 
     const scores = evaluation.scores || {};
-    
+
     chatContainer.innerHTML = `
         <div class="evaluation-result">
             <div class="eval-header">
-                <div class="eval-icon">🎉</div>
+                <div class="eval-icon"></div>
                 <h3>Hoàn thành hội thoại!</h3>
                 <p>Bạn đã hoàn thành ${evaluation.total_turns || 0} lượt trò chuyện</p>
             </div>
-            
+
             <div class="eval-scores">
                 <div class="score-item">
                     <div class="score-label">Tổng điểm</div>
@@ -579,54 +571,54 @@ function showConversationEvaluation(evaluation) {
                     </div>
                 </div>
             </div>
-            
+
             ${evaluation.grammar_errors?.length > 0 ? `
             <div class="eval-section">
-                <h4>📝 Lỗi ngữ pháp cần chú ý</h4>
+                <h4> Lỗi ngữ pháp cần chú ý</h4>
                 <div class="grammar-errors">
                     ${evaluation.grammar_errors.slice(0, 5).map(err => `
                         <div class="error-item">
-                            <div class="error-original">❌ ${err.original}</div>
-                            <div class="error-corrected">✅ ${err.corrected}</div>
+                            <div class="error-original"> ${err.original}</div>
+                            <div class="error-corrected"> ${err.corrected}</div>
                             <div class="error-explanation">${err.explanation}</div>
                         </div>
                     `).join('')}
                 </div>
             </div>
             ` : ''}
-            
+
             ${evaluation.strengths?.length > 0 ? `
             <div class="eval-section">
-                <h4>💪 Điểm mạnh</h4>
+                <h4> Điểm mạnh</h4>
                 <ul class="strengths-list">
-                    ${evaluation.strengths.map(s => `<li>✅ ${s}</li>`).join('')}
+                    ${evaluation.strengths.map(s => `<li> ${s}</li>`).join('')}
                 </ul>
             </div>
             ` : ''}
-            
+
             ${evaluation.areas_to_improve?.length > 0 ? `
             <div class="eval-section">
-                <h4>📈 Cần cải thiện</h4>
+                <h4> Cần cải thiện</h4>
                 <ul class="improve-list">
-                    ${evaluation.areas_to_improve.map(s => `<li>🎯 ${s}</li>`).join('')}
+                    ${evaluation.areas_to_improve.map(s => `<li> ${s}</li>`).join('')}
                 </ul>
             </div>
             ` : ''}
-            
+
             <div class="eval-section">
-                <h4>💬 Nhận xét</h4>
+                <h4> Nhận xét</h4>
                 <p class="overall-feedback">${evaluation.overall_feedback || 'Buổi luyện tập tốt!'}</p>
             </div>
-            
+
             ${evaluation.tips?.length > 0 ? `
             <div class="eval-section">
-                <h4>💡 Mẹo luyện tập</h4>
+                <h4> Mẹo luyện tập</h4>
                 <ul class="tips-list">
-                    ${evaluation.tips.map(t => `<li>💡 ${t}</li>`).join('')}
+                    ${evaluation.tips.map(t => `<li> ${t}</li>`).join('')}
                 </ul>
             </div>
             ` : ''}
-            
+
             <div class="eval-actions">
                 <button class="btn-primary" onclick="startAIConversation()">
                     <i class="fas fa-redo"></i> Luyện tập lại
@@ -650,7 +642,7 @@ function showFallbackEvaluation() {
     });
 }
 
-// ========== GỢI Ý CÂU TRẢ LỜI ==========
+// ========== SUGGESTION POPUP ==========
 async function requestSuggestion() {
     if (!aiChatState.lastAiMessage) {
         alert('Hãy đợi AI nói trước để được gợi ý câu trả lời.');
@@ -675,7 +667,6 @@ async function requestSuggestion() {
             const data = await response.json();
             showSuggestionPopup(data);
         } else {
-            console.error('Suggest reply error:', response.status);
             showDefaultSuggestions();
         }
     } catch (error) {
@@ -685,7 +676,6 @@ async function requestSuggestion() {
 }
 
 function showSuggestionPopup(data) {
-    // Hiển thị popup với gợi ý
     const existingPopup = document.getElementById('suggestionPopup');
     if (existingPopup) existingPopup.remove();
 
@@ -695,10 +685,10 @@ function showSuggestionPopup(data) {
     popup.innerHTML = `
         <div class="suggestion-popup-content">
             <div class="popup-header">
-                <h4>💡 Gợi ý câu trả lời</h4>
+                <h4> Gợi ý câu trả lời</h4>
                 <button class="close-popup" onclick="closeSuggestionPopup()">&times;</button>
             </div>
-            
+
             <div class="suggestion-options">
                 ${data.suggestions?.map(s => `
                     <button class="suggestion-option" onclick="useSuggestionFromPopup('${s.replace(/'/g, "\\'")}')">
@@ -706,17 +696,17 @@ function showSuggestionPopup(data) {
                     </button>
                 `).join('') || ''}
             </div>
-            
+
             <div class="example-section">
-                <h5>📝 Mẫu câu đầy đủ:</h5>
+                <h5> Mẫu câu đầy đủ:</h5>
                 <div class="example-sentence" onclick="useSuggestionFromPopup('${(data.example_sentence || '').replace(/'/g, "\\'")}')">
                     ${data.example_sentence || 'I would like to continue our conversation.'}
                 </div>
             </div>
-            
+
             ${data.explanation ? `
             <div class="explanation-section">
-                <h5>📚 Giải thích:</h5>
+                <h5> Giải thích:</h5>
                 <p>${data.explanation}</p>
             </div>
             ` : ''}
@@ -739,12 +729,11 @@ function useSuggestionFromPopup(text) {
     closeSuggestionPopup();
 }
 
-// ========== ĐÁNH GIÁ TIN NHẮN USER ==========
+// ========== MESSAGE EVALUATION ==========
 async function evaluateUserMessage(messageId, userText) {
     const evalContainer = document.getElementById(`eval-${messageId}`);
     if (!evalContainer) return;
 
-    // Hiển thị loading
     evalContainer.style.display = 'block';
     evalContainer.innerHTML = '<div class="eval-loading"><i class="fas fa-spinner fa-spin"></i> Đang đánh giá...</div>';
 
@@ -781,30 +770,30 @@ function showMessageEvaluation(container, evaluation) {
 
     container.innerHTML = `
         <div class="message-eval ${isCorrect ? 'correct' : 'has-errors'}">
-            ${isCorrect ? 
-                `<div class="eval-status correct">✅ Câu đúng ngữ pháp!</div>` :
-                `<div class="eval-status incorrect">⚠️ Cần sửa một số lỗi</div>`
+            ${isCorrect ?
+                `<div class="eval-status correct"> Câu đúng ngữ pháp!</div>` :
+                `<div class="eval-status incorrect"> Cần sửa một số lỗi</div>`
             }
-            
+
             ${!isCorrect && evaluation.corrected_text ? `
                 <div class="corrected-text">
                     <strong>Sửa lại:</strong> ${evaluation.corrected_text}
                 </div>
             ` : ''}
-            
+
             ${corrections.length > 0 ? `
                 <div class="corrections-list">
                     ${corrections.map(c => `
                         <div class="correction-item">
-                            <span class="original">❌ ${c.original}</span>
-                            <span class="arrow">→</span>
-                            <span class="corrected">✅ ${c.corrected}</span>
+                            <span class="original"> ${c.original}</span>
+                            <span class="arrow"></span>
+                            <span class="corrected"> ${c.corrected}</span>
                             <div class="explanation">${c.explanation}</div>
                         </div>
                     `).join('')}
                 </div>
             ` : ''}
-            
+
             <div class="eval-feedback">
                 <span class="relevance">Độ phù hợp: ${evaluation.relevance_score}/10</span>
                 <span class="encouragement">${evaluation.encouragement}</span>
@@ -829,4 +818,4 @@ window.useSuggestionFromPopup = useSuggestionFromPopup;
 window.playMessageAudio = playMessageAudio;
 window.showChatWelcomeScreen = showChatWelcomeScreen;
 
-console.log('[AI Chat] ✅ Module loaded');
+console.log('[AI Chat]  Module loaded');

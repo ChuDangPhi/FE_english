@@ -44,6 +44,27 @@
     display: inline-block;
 }
 
+/* Thumbnail cho topic card */
+.topic-thumbnail {
+    width: 100%;
+    height: 140px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #667eea20, #764ba220);
+}
+
+.topic-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.topic-card:hover .topic-thumbnail img {
+    transform: scale(1.1);
+}
+
 .topic-card h3 {
     color: #333;
     margin-bottom: 10px;

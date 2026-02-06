@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Thống Kê Học Tập</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="admin.css">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <span class="logo-text">Admin Panel</span>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="admin.html" class="nav-link active">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Tổng quan</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="admin-users.html" class="nav-link">
+                    <i class="fas fa-users"></i>
+                    <span>Quản lý Users</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="admin-lessons.html" class="nav-link">
+                    <i class="fas fa-book-open"></i>
+                    <span>Thống kê Bài học</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="admin-leaderboard.html" class="nav-link">
+                    <i class="fas fa-trophy"></i>
+                    <span>Bảng xếp hạng</span>
+                </a>
+            </li>
+            <li class="nav-item divider"></li>
+            <li class="nav-item">
+                <a href="../dashboard.html" class="nav-link">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Về Dashboard</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="user-section" id="userSection">
+            <div class="user-avatar admin">
+                <i class="fas fa-user-shield"></i>
+            </div>
+            <div>
+                <div class="user-name" id="adminName">Admin</div>
+                <div class="user-role">Quản trị viên</div>
+            </div>
+            <i class="fas fa-chevron-down" id="chevronIcon"></i>
+        </div>
+
+        <!-- User Menu Dropdown -->
+        <div class="user-menu" id="userMenu">
+            <div class="user-menu-item logout" onclick="handleLogout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Đăng xuất</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <div>
+                <h1><i class="fas fa-chart-line"></i> Dashboard Thống Kê</h1>
+                <p>Tổng quan hoạt động học tập của hệ thống</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-refresh" onclick="refreshDashboard()">
+                    <i class="fas fa-sync-alt"></i> Làm mới
+                </button>
+                <span class="last-updated" id="lastUpdated">Cập nhật: --</span>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="spinner"></div>
+            <p>Đang tải dữ liệu...</p>
+        </div>
+
+        <!-- Stats Cards Row -->
+        <div class="stats-row">
+            <div class="stat-card users">
+                <div class="stat-icon"><i class="fas fa-users"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value" id="totalUsers">--</div>
+                    <div class="stat-label">Tổng Users</div>
+                    <div class="stat-detail">
+                        <span class="badge active" id="activeUsers">-- active</span>
+                        <span class="badge new" id="newUsersToday">+-- hôm nay</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card lessons">
+                <div class="stat-icon"><i class="fas fa-graduation-cap"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value" id="totalLessonsCompleted">--</div>
+                    <div class="stat-label">Bài học hoàn thành</div>
+                    <div class="stat-detail">
+                        <span class="badge info" id="totalLessons">-- bài học</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card time">
+                <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value" id="totalStudyTime">--</div>
+                    <div class="stat-label">Giờ học tổng</div>
+                    <div class="stat-detail">
+                        <span class="badge info">Toàn hệ thống</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card score">
+                <div class="stat-icon"><i class="fas fa-star"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value" id="averageScore">--</div>
+                    <div class="stat-label">Điểm trung bình</div>
+                    <div class="stat-detail">
+                        <span class="badge warning" id="totalVocabulary">-- từ vựng</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="charts-row">
+            <!-- Activity Chart -->
+            <div class="chart-card large">
+                <div class="chart-header">
+                    <h3><i class="fas fa-chart-area"></i> Hoạt động học tập</h3>
+                    <div class="chart-controls">
+                        <button class="chart-btn active" data-days="7">7 ngày</button>
+                        <button class="chart-btn" data-days="14">14 ngày</button>
+                        <button class="chart-btn" data-days="30">30 ngày</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="activityChart"></canvas>
+                </div>
+            </div>
+
+            <!-- User Distribution -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-pie-chart"></i> Phân bố Level</h3>
+                </div>
+                <div class="chart-container pie">
+                    <canvas id="levelChart"></canvas>
+                </div>
+                <div class="level-legend" id="levelLegend">
+                    <!-- Legend will be populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Second Row -->
+        <div class="charts-row">
+            <!-- Lesson Type Stats -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-layer-group"></i> Thống kê theo loại bài</h3>
+                </div>
+                <div class="lesson-type-stats" id="lessonTypeStats">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+
+            <!-- Top Users -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-trophy"></i> Top Users</h3>
+                    <a href="admin-leaderboard.html" class="view-all">Xem tất cả →</a>
+                </div>
+                <div class="top-users-list" id="topUsersList">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+
+            <!-- Top Lessons -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-fire"></i> Bài học phổ biến</h3>
+                    <a href="admin-lessons.html" class="view-all">Xem tất cả →</a>
+                </div>
+                <div class="top-lessons-list" id="topLessonsList">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin-config.js"></script>
+    <script src="admin.js"></script>
+</body>
+
+</html>

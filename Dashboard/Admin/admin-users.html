@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Quản lý Users</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="admin-users.css">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <span class="logo-text">Admin Panel</span>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="admin.html" class="nav-link">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Tổng quan</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="admin-users.html" class="nav-link active">
+                    <i class="fas fa-users"></i>
+                    <span>Quản lý Users</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="admin-lessons.html" class="nav-link">
+                    <i class="fas fa-book-open"></i>
+                    <span>Thống kê Bài học</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="admin-leaderboard.html" class="nav-link">
+                    <i class="fas fa-trophy"></i>
+                    <span>Bảng xếp hạng</span>
+                </a>
+            </li>
+            <li class="nav-item divider"></li>
+            <li class="nav-item">
+                <a href="../dashboard.html" class="nav-link">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Về Dashboard</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="user-section" id="userSection">
+            <div class="user-avatar admin">
+                <i class="fas fa-user-shield"></i>
+            </div>
+            <div>
+                <div class="user-name" id="adminName">Admin</div>
+                <div class="user-role">Quản trị viên</div>
+            </div>
+            <i class="fas fa-chevron-down" id="chevronIcon"></i>
+        </div>
+
+        <div class="user-menu" id="userMenu">
+            <div class="user-menu-item logout" onclick="handleLogout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Đăng xuất</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <div>
+                <h1><i class="fas fa-users"></i> Quản lý Users</h1>
+                <p>Xem và quản lý thông tin học viên</p>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-bar">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Tìm theo email hoặc tên...">
+            </div>
+            
+            <div class="filter-group">
+                <select id="levelFilter">
+                    <option value="">Tất cả Level</option>
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                </select>
+                
+                <select id="statusFilter">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="true">Đang hoạt động</option>
+                    <option value="false">Đã khóa</option>
+                </select>
+                
+                <select id="sortFilter">
+                    <option value="created_at">Mới nhất</option>
+                    <option value="email">Email</option>
+                    <option value="current_level">Level</option>
+                </select>
+                
+                <button class="btn btn-filter" onclick="applyFilters()">
+                    <i class="fas fa-filter"></i> Lọc
+                </button>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="table-container">
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Level</th>
+                        <th>Bài học</th>
+                        <th>Thời gian học</th>
+                        <th>Điểm TB</th>
+                        <th>Streak</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày tạo</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    <!-- Will be populated by JS -->
+                </tbody>
+            </table>
+            
+            <!-- Empty State -->
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <i class="fas fa-users-slash"></i>
+                <p>Không tìm thấy user nào</p>
+            </div>
+            
+            <!-- Loading -->
+            <div class="table-loading" id="tableLoading">
+                <div class="spinner"></div>
+                <p>Đang tải...</p>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" id="pagination">
+            <button class="page-btn" id="prevBtn" onclick="goToPage(currentPage - 1)">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="page-numbers" id="pageNumbers"></div>
+            <button class="page-btn" id="nextBtn" onclick="goToPage(currentPage + 1)">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+            <span class="page-info" id="pageInfo">Trang 1/1</span>
+        </div>
+    </div>
+
+    <!-- User Detail Modal -->
+    <div class="modal" id="userDetailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-user"></i> Chi tiết User</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="userDetailBody">
+                <!-- Will be populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script src="admin-config.js"></script>
+    <script src="admin-users.js"></script>
+</body>
+
+</html>

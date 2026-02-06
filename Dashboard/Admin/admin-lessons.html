@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Thống kê Bài học</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="admin-lessons.css">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <span class="logo-text">Admin Panel</span>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="admin.html" class="nav-link">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Tổng quan</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="admin-users.html" class="nav-link">
+                    <i class="fas fa-users"></i>
+                    <span>Quản lý Users</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="admin-lessons.html" class="nav-link active">
+                    <i class="fas fa-book-open"></i>
+                    <span>Thống kê Bài học</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="admin-leaderboard.html" class="nav-link">
+                    <i class="fas fa-trophy"></i>
+                    <span>Bảng xếp hạng</span>
+                </a>
+            </li>
+            <li class="nav-item divider"></li>
+            <li class="nav-item">
+                <a href="../dashboard.html" class="nav-link">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Về Dashboard</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="user-section" id="userSection">
+            <div class="user-avatar admin">
+                <i class="fas fa-user-shield"></i>
+            </div>
+            <div>
+                <div class="user-name" id="adminName">Admin</div>
+                <div class="user-role">Quản trị viên</div>
+            </div>
+            <i class="fas fa-chevron-down" id="chevronIcon"></i>
+        </div>
+
+        <div class="user-menu" id="userMenu">
+            <div class="user-menu-item logout" onclick="handleLogout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Đăng xuất</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <div>
+                <h1><i class="fas fa-book-open"></i> Thống kê Bài học</h1>
+                <p>Phân tích hiệu suất các bài học</p>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-cards" id="summaryCards">
+            <!-- Will be populated by JS -->
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-bar">
+            <div class="filter-group">
+                <select id="typeFilter">
+                    <option value="">Tất cả loại</option>
+                    <option value="vocabulary_matching">Nối từ vựng</option>
+                    <option value="pronunciation">Phát âm</option>
+                    <option value="conversation">Hội thoại</option>
+                    <option value="mixed">Tổng hợp</option>
+                </select>
+                
+                <select id="sortFilter">
+                    <option value="total_attempts">Số lượt làm</option>
+                    <option value="avg_score">Điểm TB</option>
+                    <option value="unique_users">Số học viên</option>
+                    <option value="completed_count">Hoàn thành</option>
+                </select>
+                
+                <select id="sortOrder">
+                    <option value="desc">Cao → Thấp</option>
+                    <option value="asc">Thấp → Cao</option>
+                </select>
+                
+                <button class="btn btn-filter" onclick="applyFilters()">
+                    <i class="fas fa-filter"></i> Lọc
+                </button>
+            </div>
+        </div>
+
+        <!-- Lessons Table -->
+        <div class="table-container">
+            <table class="lessons-table">
+                <thead>
+                    <tr>
+                        <th>Bài học</th>
+                        <th>Loại</th>
+                        <th>Lượt làm</th>
+                        <th>Học viên</th>
+                        <th>Hoàn thành</th>
+                        <th>Tỉ lệ đạt</th>
+                        <th>Điểm TB</th>
+                        <th>Thời gian TB</th>
+                    </tr>
+                </thead>
+                <tbody id="lessonsTableBody">
+                    <!-- Will be populated by JS -->
+                </tbody>
+            </table>
+            
+            <!-- Empty State -->
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <i class="fas fa-book-open"></i>
+                <p>Không tìm thấy bài học nào</p>
+            </div>
+            
+            <!-- Loading -->
+            <div class="table-loading" id="tableLoading">
+                <div class="spinner"></div>
+                <p>Đang tải...</p>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" id="pagination">
+            <button class="page-btn" id="prevBtn" onclick="goToPage(currentPage - 1)">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="page-numbers" id="pageNumbers"></div>
+            <button class="page-btn" id="nextBtn" onclick="goToPage(currentPage + 1)">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+            <span class="page-info" id="pageInfo">Trang 1/1</span>
+        </div>
+    </div>
+
+    <script src="admin-config.js"></script>
+    <script src="admin-lessons.js"></script>
+</body>
+
+</html>

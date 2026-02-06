@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Bảng xếp hạng</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="admin-leaderboard.css">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <span class="logo-text">Admin Panel</span>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="admin.html" class="nav-link">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Tổng quan</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="admin-users.html" class="nav-link">
+                    <i class="fas fa-users"></i>
+                    <span>Quản lý Users</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="admin-lessons.html" class="nav-link">
+                    <i class="fas fa-book-open"></i>
+                    <span>Thống kê Bài học</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="admin-leaderboard.html" class="nav-link active">
+                    <i class="fas fa-trophy"></i>
+                    <span>Bảng xếp hạng</span>
+                </a>
+            </li>
+            <li class="nav-item divider"></li>
+            <li class="nav-item">
+                <a href="../dashboard.html" class="nav-link">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Về Dashboard</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="user-section" id="userSection">
+            <div class="user-avatar admin">
+                <i class="fas fa-user-shield"></i>
+            </div>
+            <div>
+                <div class="user-name" id="adminName">Admin</div>
+                <div class="user-role">Quản trị viên</div>
+            </div>
+            <i class="fas fa-chevron-down" id="chevronIcon"></i>
+        </div>
+
+        <div class="user-menu" id="userMenu">
+            <div class="user-menu-item logout" onclick="handleLogout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Đăng xuất</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <div>
+                <h1><i class="fas fa-trophy"></i> Bảng Xếp Hạng</h1>
+                <p>Top học viên xuất sắc nhất</p>
+            </div>
+        </div>
+
+        <!-- Metric Tabs -->
+        <div class="metric-tabs">
+            <button class="metric-tab active" data-metric="score">
+                <i class="fas fa-star"></i>
+                <span>Điểm cao nhất</span>
+            </button>
+            <button class="metric-tab" data-metric="lessons_completed">
+                <i class="fas fa-graduation-cap"></i>
+                <span>Bài học hoàn thành</span>
+            </button>
+            <button class="metric-tab" data-metric="streak">
+                <i class="fas fa-fire"></i>
+                <span>Streak dài nhất</span>
+            </button>
+            <button class="metric-tab" data-metric="study_time">
+                <i class="fas fa-clock"></i>
+                <span>Thời gian học</span>
+            </button>
+        </div>
+
+        <!-- Period Filter -->
+        <div class="period-filter">
+            <span>Thời gian:</span>
+            <button class="period-btn active" data-period="">Tất cả</button>
+            <button class="period-btn" data-period="this_month">30 ngày</button>
+            <button class="period-btn" data-period="this_week">7 ngày</button>
+        </div>
+
+        <!-- Top 3 Podium -->
+        <div class="podium-container" id="podiumContainer">
+            <!-- Will be populated by JS -->
+        </div>
+
+        <!-- Full Leaderboard -->
+        <div class="leaderboard-card">
+            <div class="leaderboard-header">
+                <h3>Bảng xếp hạng đầy đủ</h3>
+                <span class="total-count" id="totalCount">-- người</span>
+            </div>
+            
+            <div class="leaderboard-table" id="leaderboardTable">
+                <!-- Will be populated by JS -->
+            </div>
+            
+            <!-- Loading -->
+            <div class="table-loading" id="tableLoading">
+                <div class="spinner"></div>
+                <p>Đang tải...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin-config.js"></script>
+    <script src="admin-leaderboard.js"></script>
+</body>
+
+</html>

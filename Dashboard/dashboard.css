@@ -75,6 +75,33 @@
       color: white;
   }
 
+  /* Admin Link Styling */
+  .admin-link {
+      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+      color: white !important;
+      font-weight: 600;
+      border: 2px solid transparent;
+      position: relative;
+  }
+
+  .admin-link::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+      border-radius: 12px;
+      z-index: -1;
+      opacity: 0.3;
+  }
+
+  .admin-link:hover {
+      background: linear-gradient(135deg, #ee5a5a 0%, #dc3545 100%);
+      transform: translateX(5px);
+  }
+
   .user-section {
       position: absolute;
       bottom: 20px;

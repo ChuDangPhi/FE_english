@@ -40,60 +40,40 @@ let userMatches = [];
 
 
 
-// Hàm đánh dấu ngày học khi hoàn thành bài
-function markStudyComplete(wordCount = 0, topicId = null) {
-    const today = new Date().toDateString();
-
-    const datesKey = (window.getStudyKey) ? window.getStudyKey('studyDates') : 'studyDates';
-    const wordsKey = (window.getStudyKey) ? window.getStudyKey('totalWordsLearned') : 'totalWordsLearned';
-    const topicsKey = (window.getStudyKey) ? window.getStudyKey('completedTopics') : 'completedTopics';
-
-    let studyDates = JSON.parse(localStorage.getItem(datesKey) || '[]');
-
-    // Lưu ngày học
-    if (!studyDates.includes(today)) {
-        studyDates.push(today);
-        localStorage.setItem(datesKey, JSON.stringify(studyDates));
-        console.log('✅ Đã đánh dấu ngày học:', today);
-    }
-
-    // Chỉ cộng số từ nếu là lần đầu hoàn thành topic này
-    if (topicId) {
-        const progress = getTopicProgress(topicId);
-
-        // Nếu chưa từng hoàn thành matching trước đó, mới cộng từ
-        if (!progress.matchingCompleted) {
-            let totalWords = parseInt(localStorage.getItem(wordsKey) || '0');
-            totalWords += wordCount;
-            localStorage.setItem(wordsKey, totalWords.toString());
-            console.log('📚 Tổng từ đã học (lần đầu):', totalWords);
-
-            // Cộng số bài học đã hoàn thành
-            let completedTopics = JSON.parse(localStorage.getItem(topicsKey) || '[]');
-            if (!completedTopics.includes(topicId)) {
-                completedTopics.push(topicId);
-                localStorage.setItem(topicsKey, JSON.stringify(completedTopics));
-                console.log('🎓 Tổng bài học đã hoàn thành:', completedTopics.length);
-            }
-        } else {
-            console.log('ℹ️ Topic đã hoàn thành trước đó, không cộng từ và bài học');
+// Hàm đánh dấu ngày học khi hoàn thành bài - Gọi API Backend
+async function markStudyComplete(wordCount = 0, topicId = null) {
+    console.log('📚 Hoàn thành bài học - Word count:', wordCount, 'Topic ID:', topicId);
+    
+    try {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            console.warn('⚠️ Chưa đăng nhập, không thể cập nhật progress');
+            return;
         }
-    } else {
-        // Fallback: không có topicId thì vẫn cộng (để tương thích code cũ)
-        let totalWords = parseInt(localStorage.getItem(wordsKey) || '0');
-        totalWords += wordCount;
-        localStorage.setItem(wordsKey, totalWords.toString());
-        console.log('📚 Tổng từ đã học:', totalWords);
-    }
 
-    // Cập nhật ngay giao diện Dashboard (Lịch, Streak, Stats)
-    if (typeof window.renderStudyCalendar === 'function') {
-        window.renderStudyCalendar();
-    }
+        // Gọi API cập nhật streak
+        const response = await fetch(`${API_BASE_URL}/progress/streak/update`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            console.log('✅ Streak updated:', result);
+        } else {
+            console.error('❌ Streak update failed:', response.status);
+        }
 
-    // Cập nhật Stats trên Profile nếu đang mở (nếu hàm tồn tại)
-    if (typeof window.updateProfileStats === 'function') {
-        window.updateProfileStats();
+        // Cập nhật UI Dashboard nếu có (khi quay lại dashboard)
+        if (typeof window.refreshDashboard === 'function') {
+            window.refreshDashboard();
+        }
+        
+    } catch (error) {
+        console.error('❌ Error updating streak:', error);
     }
 }
 
